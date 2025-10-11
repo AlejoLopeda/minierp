@@ -1,44 +1,55 @@
 <template>
   <div class="layout">
-    <header class="layout__header">
-      <h1 class="layout__title">Mini ERP</h1>
-      <p class="layout__subtitle">Gestion de usuarios</p>
-    </header>
+    <MainNavbar />
     <main class="layout__content">
       <slot />
     </main>
+    <footer class="layout__footer">
+      <p>&copy; 2025 Mini ERP | Sistema de gestion empresarial</p>
+    </footer>
   </div>
 </template>
+
+<script>
+import MainNavbar from '@/components/layout/MainNavbar.vue'
+
+export default {
+  name: 'MainLayout',
+  components: {
+    MainNavbar
+  }
+}
+</script>
 
 <style scoped>
 .layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.layout__header {
-  padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, #2f80ed, #56ccf2);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.layout__title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 600;
-}
-
-.layout__subtitle {
-  margin: 0.25rem 0 0;
-  opacity: 0.85;
+  background-color: #f5f6fa;
+  color: #333;
 }
 
 .layout__content {
   flex: 1;
-  padding: 2rem;
   display: flex;
+  align-items: center;
   justify-content: center;
+  padding: 3rem 1.5rem;
+}
+
+.layout__footer {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background-color: #e5e5e5;
+  color: #555;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+  .layout__content {
+    padding: 2.5rem 1rem;
+  }
 }
 </style>
