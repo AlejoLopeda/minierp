@@ -36,4 +36,4 @@ export default {
 }
 </script>
 
-<style scoped src="../theme/HomeStyle.css"></style>
+<style scoped src="../theme/HomeStyles.css"></style>
