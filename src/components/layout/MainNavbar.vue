@@ -21,6 +21,7 @@ export default {
   setup() {
     const router = useRouter()
     const links = [
+      { label: 'Inicio', route: '' },
       { label: 'Ventas', route: 'ventas' },
       { label: 'Compras', route: 'compras' },
       { label: 'Reportes', route: 'reportes' }
