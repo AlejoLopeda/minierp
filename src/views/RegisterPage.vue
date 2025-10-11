@@ -21,25 +21,25 @@
         <AuthField label="Correo">
           <input v-model="registerForm.correo" required type="email" placeholder="Ingresa tu correo" />
         </AuthField>
-        <AuthField label="ContraseÃ±a">
+        <AuthField label="Contraseña">
           <input
             v-model="registerForm.password"
             required
             type="password"
-            placeholder="Ingresa tu contraseÃ±a"
+            placeholder="Ingresa tu contraseña"
             minlength="6"
           />
         </AuthField>
 
         <template #switch>
           Ya tienes una cuenta?
-          <router-link to="/inicio-sesion">Ir al inicio de sesiÃ³n</router-link>
+          <router-link to="/inicio-sesion">Ir al inicio de sesión</router-link>
         </template>
       </AuthFormLayout>
     </main>
 
     <footer class="auth-footer">
-      <p>Â© 2025 Mini ERP | Sistema de gestiÃ³n empresarial</p>
+      <p>© 2025 Mini ERP | Sistema de gestión empresarial</p>
     </footer>
   </div>
   
