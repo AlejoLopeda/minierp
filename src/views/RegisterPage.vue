@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="auth-page">
     <header class="auth-header">
       <h1 class="auth-title">Mini ERP</h1>
@@ -16,30 +16,30 @@
         @submit="handleRegister"
       >
         <AuthField label="Nombre">
-          <input v-model="registerForm.nombre" required placeholder="Nombre completo" />
+          <input v-model="registerForm.nombre" required placeholder="Ingresa tu nombre" />
         </AuthField>
         <AuthField label="Correo">
-          <input v-model="registerForm.correo" required type="email" placeholder="correo@dominio.com" />
+          <input v-model="registerForm.correo" required type="email" placeholder="Ingresa tu correo" />
         </AuthField>
-        <AuthField label="Contrasena">
+        <AuthField label="ContraseÃ±a">
           <input
             v-model="registerForm.password"
             required
             type="password"
-            placeholder="Minimo 6 caracteres"
+            placeholder="Ingresa tu contraseÃ±a"
             minlength="6"
           />
         </AuthField>
 
         <template #switch>
-          Ya tienes cuenta?
-          <router-link to="/login">Ir al login</router-link>
+          Ya tienes una cuenta?
+          <router-link to="/inicio-sesion">Ir al inicio de sesiÃ³n</router-link>
         </template>
       </AuthFormLayout>
     </main>
 
     <footer class="auth-footer">
-      <p>© 2025 Mini ERP</p>
+      <p>Â© 2025 Mini ERP | Sistema de gestiÃ³n empresarial</p>
     </footer>
   </div>
   

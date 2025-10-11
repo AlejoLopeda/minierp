@@ -2,12 +2,13 @@
   <div class="home-layout">
     <header class="navbar">
       <div class="logo">Mini ERP</div>
-      <nav>
+      <nav class="navbar-right">
         <ul class="nav-links">
           <li><button @click="irA('ventas')" class="nav-btn">Ventas</button></li>
           <li><button @click="irA('compras')" class="nav-btn">Compras</button></li>
           <li><button @click="irA('reportes')" class="nav-btn">Reportes</button></li>
         </ul>
+        <button class="logout-btn" @click="logout">Cerrar sesión</button>
       </nav>
     </header>
 
@@ -23,11 +24,18 @@
 </template>
 
 <script>
+import { useSession } from '../composables/useSession'
+
 export default {
   name: 'MainLayout',
   methods: {
     irA(ruta) {
       this.$router.push(`/${ruta}`)
+    },
+    logout() {
+      const { clearSession } = useSession()
+      clearSession()
+      this.$router.push({ name: 'Inicio-sesion' })
     },
   },
 }

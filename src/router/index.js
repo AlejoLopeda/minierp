@@ -6,8 +6,8 @@ import { useSession } from '../composables/useSession'
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
-  { path: '/login', name: 'Login', component: LoginPage, meta: { noLayout: true } },
-  { path: '/register', name: 'Register', component: RegisterPage, meta: { noLayout: true } },
+  { path: '/inicio-sesion', name: 'Inicio-sesion', component: LoginPage, meta: { noLayout: true } },
+  { path: '/registro', name: 'Registro', component: RegisterPage, meta: { noLayout: true } },
 ]
 
 const router = createRouter({
@@ -20,10 +20,10 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = Boolean(token.value)
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return next({ name: 'Login', query: { redirect: to.fullPath } })
+    return next({ name: 'Inicio-sesion', query: { redirect: to.fullPath } })
   }
 
-  if (isAuthenticated && (to.name === 'Login' || to.name === 'Register')) {
+  if (isAuthenticated && (to.name === 'Inicio-sesion' || to.name === 'Registro')) {
     return next({ name: 'Home' })
   }
 

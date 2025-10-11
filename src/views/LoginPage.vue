@@ -16,21 +16,21 @@
         @submit="handleLogin"
       >
         <AuthField label="Correo">
-          <input v-model="loginForm.correo" required type="email" placeholder="correo@dominio.com" />
+          <input v-model="loginForm.correo" required type="email" placeholder="Ingresa tu correo" />
         </AuthField>
-        <AuthField label="Contrasena">
-          <input v-model="loginForm.password" required type="password" placeholder="Tu contrasena" />
+        <AuthField label="Contraseña">
+          <input v-model="loginForm.password" required type="password" placeholder="Ingresa tu contraseña" />
         </AuthField>
 
         <template #switch>
-          Necesitas crear una cuenta?
-          <router-link to="/register">Ir al registro</router-link>
+          No tienes una cuenta?
+          <router-link to="/registro">Ir al registro de usuario</router-link>
         </template>
       </AuthFormLayout>
     </main>
 
     <footer class="auth-footer">
-      <p>© 2025 Mini ERP</p>
+      <p>© 2025 Mini ERP | Sistema de gestión empresarial</p>
     </footer>
   </div>
   
