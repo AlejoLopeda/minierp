@@ -1,44 +1,40 @@
 <template>
-  <section class="auth">
-    <form class="card" autocomplete="off" @submit.prevent="handleRegister">
-      <h2>Crear cuenta</h2>
-      <label class="field">
-        <span>Nombre</span>
-        <input v-model="registerForm.nombre" required placeholder="Nombre completo" />
-      </label>
-      <label class="field">
-        <span>Correo</span>
-        <input v-model="registerForm.correo" required type="email" placeholder="correo@dominio.com" />
-      </label>
-      <label class="field">
-        <span>Contrasena</span>
-        <input
-          v-model="registerForm.password"
-          required
-          type="password"
-          placeholder="Minimo 6 caracteres"
-          minlength="6"
-        />
-      </label>
-      <button class="button" type="submit" :disabled="registerLoading">
-        {{ registerLoading ? 'Registrando...' : 'Registrarme' }}
-      </button>
-    </form>
+  <AuthFormLayout
+    title="Crear cuenta"
+    submit-text="Registrarme"
+    loading-text="Registrando..."
+    :loading="registerLoading"
+    :error="errorMessage"
+    :info="infoMessage"
+    @submit="handleRegister"
+  >
+    <AuthField label="Nombre">
+      <input v-model="registerForm.nombre" required placeholder="Nombre completo" />
+    </AuthField>
+    <AuthField label="Correo">
+      <input v-model="registerForm.correo" required type="email" placeholder="correo@dominio.com" />
+    </AuthField>
+    <AuthField label="Contrasena">
+      <input
+        v-model="registerForm.password"
+        required
+        type="password"
+        placeholder="Minimo 6 caracteres"
+        minlength="6"
+      />
+    </AuthField>
 
-    <div class="auth__feedback">
-      <p v-if="errorMessage" class="alert alert--error">{{ errorMessage }}</p>
-      <p v-if="infoMessage" class="alert alert--info">{{ infoMessage }}</p>
-    </div>
-
-    <p class="auth__switch">
+    <template #switch>
       Ya tienes cuenta?
       <router-link to="/login">Ir al login</router-link>
-    </p>
-  </section>
+    </template>
+  </AuthFormLayout>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import AuthField from '../components/auth/AuthField.vue'
+import AuthFormLayout from '../components/auth/AuthFormLayout.vue'
 import { useSession } from '../composables/useSession'
 import { registerUsuario } from '../services/usuarioService'
 
