@@ -1,0 +1,23 @@
+[
+  {
+    "id": "prd-001",
+    "nombre": "Laptop Profesional 14\"",
+    "sku": "LP-14PRO",
+    "precio": 4599.9,
+    "stock": 12
+  },
+  {
+    "id": "prd-002",
+    "nombre": "Impresora Multifuncional Wi-Fi",
+    "sku": "PRN-MULTI",
+    "precio": 899.5,
+    "stock": 7
+  },
+  {
+    "id": "prd-003",
+    "nombre": "Mouse Inalambrico Ergonómico",
+    "sku": "MSE-ERGO",
+    "precio": 129.99,
+    "stock": 35
+  }
+]
