@@ -1,44 +1,36 @@
 <template>
-  <div class="layout">
-    <header class="layout__header">
-      <h1 class="layout__title">Mini ERP</h1>
-      <p class="layout__subtitle">Gestion de usuarios</p>
+  <div class="home-layout">
+    <header class="navbar">
+      <div class="logo">Mini ERP</div>
+      <nav>
+        <ul class="nav-links">
+          <li><button @click="irA('ventas')" class="nav-btn">Ventas</button></li>
+          <li><button @click="irA('compras')" class="nav-btn">Compras</button></li>
+          <li><button @click="irA('reportes')" class="nav-btn">Reportes</button></li>
+        </ul>
+      </nav>
     </header>
-    <main class="layout__content">
+
+    <main class="home-content">
       <slot />
     </main>
+
+    <footer class="footer">
+      <p>© 2025 Mini ERP | Sistema de gestión empresarial</p>
+    </footer>
   </div>
+  
 </template>
 
-<style scoped>
-.layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+<script>
+export default {
+  name: 'MainLayout',
+  methods: {
+    irA(ruta) {
+      this.$router.push(`/${ruta}`)
+    },
+  },
 }
+</script>
 
-.layout__header {
-  padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, #2f80ed, #56ccf2);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.layout__title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 600;
-}
-
-.layout__subtitle {
-  margin: 0.25rem 0 0;
-  opacity: 0.85;
-}
-
-.layout__content {
-  flex: 1;
-  padding: 2rem;
-  display: flex;
-  justify-content: center;
-}
-</style>
+<style src="../theme/HomeStyles.css"></style>

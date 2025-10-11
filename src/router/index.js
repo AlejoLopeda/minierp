@@ -6,8 +6,8 @@ import { useSession } from '../composables/useSession'
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
-  { path: '/login', name: 'Login', component: LoginPage },
-  { path: '/register', name: 'Register', component: RegisterPage },
+  { path: '/login', name: 'Login', component: LoginPage, meta: { noLayout: true } },
+  { path: '/register', name: 'Register', component: RegisterPage, meta: { noLayout: true } },
 ]
 
 const router = createRouter({
