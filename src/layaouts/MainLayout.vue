@@ -1,55 +1,44 @@
 <template>
-  <div class="layout">
-    <MainNavbar />
-    <main class="layout__content">
+  <div class="home-layout">
+    <header class="navbar">
+      <div class="logo">Mini ERP</div>
+      <nav class="navbar-right">
+        <ul class="nav-links">
+          <li><button @click="irA('ventas')" class="nav-btn">Ventas</button></li>
+          <li><button @click="irA('compras')" class="nav-btn">Compras</button></li>
+          <li><button @click="irA('reportes')" class="nav-btn">Reportes</button></li>
+        </ul>
+        <button class="logout-btn" @click="logout">Cerrar sesión</button>
+      </nav>
+    </header>
+
+    <main class="home-content">
       <slot />
     </main>
-    <footer class="layout__footer">
-      <p>&copy; 2025 Mini ERP | Sistema de gestion empresarial</p>
+
+    <footer class="footer">
+      <p>© 2025 Mini ERP | Sistema de gestión empresarial</p>
     </footer>
   </div>
+  
 </template>
 
 <script>
-import MainNavbar from '@/components/layout/MainNavbar.vue'
+import { useSession } from '../composables/useSession'
 
 export default {
   name: 'MainLayout',
-  components: {
-    MainNavbar
-  }
+  methods: {
+    irA(ruta) {
+      this.$router.push(`/${ruta}`)
+    },
+    logout() {
+      const { clearSession } = useSession()
+      clearSession()
+      this.$router.push({ name: 'Inicio-sesion' })
+    },
+  },
 }
 </script>
 
-<style scoped>
-.layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: #f5f6fa;
-  color: #333;
-}
-
-.layout__content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-}
-
-.layout__footer {
-  text-align: center;
-  padding: 1.25rem 1rem;
-  background-color: #e5e5e5;
-  color: #555;
-  font-size: 0.9rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 768px) {
-  .layout__content {
-    padding: 2.5rem 1rem;
-  }
-}
-</style>
+<style src="../theme/HomeStyles.css"></style>

@@ -1,34 +1,48 @@
-<template>
-  <AuthFormLayout
-    title="Crear cuenta"
-    submit-text="Registrarme"
-    loading-text="Registrando..."
-    :loading="registerLoading"
-    :error="errorMessage"
-    :info="infoMessage"
-    @submit="handleRegister"
-  >
-    <AuthField label="Nombre">
-      <input v-model="registerForm.nombre" required placeholder="Nombre completo" />
-    </AuthField>
-    <AuthField label="Correo">
-      <input v-model="registerForm.correo" required type="email" placeholder="correo@dominio.com" />
-    </AuthField>
-    <AuthField label="Contrasena">
-      <input
-        v-model="registerForm.password"
-        required
-        type="password"
-        placeholder="Minimo 6 caracteres"
-        minlength="6"
-      />
-    </AuthField>
+﻿<template>
+  <div class="auth-page">
+    <header class="auth-header">
+      <h1 class="auth-title">Mini ERP</h1>
+      <p class="auth-subtitle">Gestion de usuarios</p>
+    </header>
 
-    <template #switch>
-      Ya tienes cuenta?
-      <router-link to="/login">Ir al login</router-link>
-    </template>
-  </AuthFormLayout>
+    <main class="auth-main">
+      <AuthFormLayout
+        title="Crear cuenta"
+        submit-text="Registrarme"
+        loading-text="Registrando..."
+        :loading="registerLoading"
+        :error="errorMessage"
+        :info="infoMessage"
+        @submit="handleRegister"
+      >
+        <AuthField label="Nombre">
+          <input v-model="registerForm.nombre" required placeholder="Ingresa tu nombre" />
+        </AuthField>
+        <AuthField label="Correo">
+          <input v-model="registerForm.correo" required type="email" placeholder="Ingresa tu correo" />
+        </AuthField>
+        <AuthField label="ContraseÃ±a">
+          <input
+            v-model="registerForm.password"
+            required
+            type="password"
+            placeholder="Ingresa tu contraseÃ±a"
+            minlength="6"
+          />
+        </AuthField>
+
+        <template #switch>
+          Ya tienes una cuenta?
+          <router-link to="/inicio-sesion">Ir al inicio de sesiÃ³n</router-link>
+        </template>
+      </AuthFormLayout>
+    </main>
+
+    <footer class="auth-footer">
+      <p>Â© 2025 Mini ERP | Sistema de gestiÃ³n empresarial</p>
+    </footer>
+  </div>
+  
 </template>
 
 <script setup>
