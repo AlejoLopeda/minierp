@@ -4,6 +4,7 @@
       <div class="logo">Mini ERP</div>
       <nav class="navbar-right">
         <ul class="nav-links">
+          <li><button @click="irA('')" class="nav-btn">Inicio</button></li>
           <li><button @click="irA('productos')" class="nav-btn">Productos</button></li>
           <li><button @click="irA('ventas')" class="nav-btn">Ventas</button></li>
           <li><button @click="irA('compras')" class="nav-btn">Compras</button></li>

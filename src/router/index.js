@@ -5,6 +5,7 @@ import RegisterPage from '../views/RegisterPage.vue'
 import { useSession } from '../composables/useSession'
 import ProductosListPage from '../views/productos/ProductosListPage.vue'
 import ProductosCreatePage from '../views/productos/ProductosCreatePage.vue'
+import ClientesCreatePage from '../views/clientes/ClientesCreatePage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
@@ -12,6 +13,7 @@ const routes = [
   { path: '/registro', name: 'Registro', component: RegisterPage, meta: { noLayout: true } },
   { path: '/productos', name: 'ProductosList', component: ProductosListPage,/*  meta: { requiresAuth: true } */ },
   { path: '/productos/nuevo', name: 'ProductosCrear', component: ProductosCreatePage, /* meta: { requiresAuth: true } */ },
+  { path: '/clientes/nuevo', name: 'ClientesCrear', component: ClientesCreatePage },
 ]
 
 const router = createRouter({
