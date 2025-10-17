@@ -6,14 +6,18 @@ import { useSession } from '../composables/useSession'
 import ProductosListPage from '../views/productos/ProductosListPage.vue'
 import ProductosCreatePage from '../views/productos/ProductosCreatePage.vue'
 import ClientesCreatePage from '../views/clientes/ClientesCreatePage.vue'
+import ClientesListPage from '../views/clientes/ClientesListPage.vue'
+import ClientesEditPage from '../views/clientes/ClientesEditPage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
   { path: '/inicio-sesion', name: 'Inicio-sesion', component: LoginPage, meta: { noLayout: true } },
   { path: '/registro', name: 'Registro', component: RegisterPage, meta: { noLayout: true } },
-  { path: '/productos', name: 'ProductosList', component: ProductosListPage,/*  meta: { requiresAuth: true } */ },
-  { path: '/productos/nuevo', name: 'ProductosCrear', component: ProductosCreatePage, /* meta: { requiresAuth: true } */ },
-  { path: '/clientes/nuevo', name: 'ClientesCrear', component: ClientesCreatePage },
+  { path: '/productos', name: 'ProductosList', component: ProductosListPage, meta: { requiresAuth: true } },
+  { path: '/productos/nuevo', name: 'ProductosCrear', component: ProductosCreatePage, meta: { requiresAuth: true } },
+  { path: '/clientes', name: 'ClientesList', component: ClientesListPage, meta: { requiresAuth: true } },
+  { path: '/clientes/nuevo', name: 'ClientesCrear', component: ClientesCreatePage, meta: { requiresAuth: true } },
+  { path: '/clientes/:id/editar', name: 'ClientesEditar', component: ClientesEditPage, props: true, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
