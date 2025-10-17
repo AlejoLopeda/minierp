@@ -6,6 +6,47 @@
   gap: 1.5rem;
 }
 
+/* ===== AUTH PAGE LAYOUT (HEADER/MAIN/FOOTER) ===== */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-header {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2f80ed, #56ccf2);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.auth-subtitle {
+  margin: 0.25rem 0 0;
+  opacity: 0.85;
+}
+
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #e5e5e5;
+  color: #555;
+  font-size: 0.9em;
+}
+
 .card {
   background-color: #fff;
   padding: 1.75rem;
