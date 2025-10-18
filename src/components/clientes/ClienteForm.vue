@@ -78,6 +78,19 @@ export default {
 
     const errors = reactive({})
 
+    // Keep local state in sync when parent modelValue changes (e.g., after GET)
+    watch(
+      () => props.modelValue,
+      (val = {}) => {
+        local.tipoCliente = val.tipoCliente || ''
+        local.nombreRazonSocial = val.nombreRazonSocial || ''
+        local.tipoDocumento = val.tipoDocumento || ''
+        local.numeroDocumento = val.numeroDocumento || ''
+        local.correoElectronico = val.correoElectronico || ''
+      },
+      { deep: true, immediate: true }
+    )
+
     watch(
       () => ({ ...local }),
       (val) => emit('update:modelValue', val),

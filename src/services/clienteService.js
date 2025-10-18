@@ -17,6 +17,8 @@ const BASE_URL = `${String(getEnvBaseUrl()).replace(/\/$/, '')}/clientes`
 
 function toCamel(obj = {}) {
   const map = {
+    idCliente: 'id',
+    id_cliente: 'id',
     tipo_cliente: 'tipoCliente',
     nombre_razon_social: 'nombreRazonSocial',
     tipo_documento: 'tipoDocumento',
@@ -116,7 +118,9 @@ export async function actualizarCliente(id, payload) {
 
 export async function eliminarCliente(id) {
   if (!id) throw new Error('ID del cliente requerido')
-  await request(`${BASE_URL}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  await request(`${BASE_URL}/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
   return true
 }
 
