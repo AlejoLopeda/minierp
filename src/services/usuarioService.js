@@ -18,7 +18,11 @@ export async function registerUsuario({ nombre, correo, password }) {
     body: JSON.stringify({ nombre, correo, password }),
   })
 
-  return handleResponse(response, 'No fue posible registrar al usuario')
+  const payload = await handleResponse(response, 'No fue posible registrar al usuario')
+  return {
+    ...payload,
+    token: payload.token || payload.access_token || payload.accessToken || payload.jwt,
+  }
 }
 
 export async function loginUsuario({ correo, password }) {
@@ -28,5 +32,9 @@ export async function loginUsuario({ correo, password }) {
     body: JSON.stringify({ correo, password }),
   })
 
-  return handleResponse(response, 'No fue posible iniciar sesion')
+  const payload = await handleResponse(response, 'No fue posible iniciar sesion')
+  return {
+    ...payload,
+    token: payload.token || payload.access_token || payload.accessToken || payload.jwt,
+  }
 }
