@@ -1,25 +1,24 @@
+import router from '@/router'
 import { useSession } from '@/composables/useSession'
 
-const BASE_URL = 'http://localhost:4000/clientes'
-
-function toSnake(obj = {}) {
-  const map = {
-    tipoCliente: 'tipo_cliente',
-    nombreRazonSocial: 'nombre_razon_social',
-    tipoDocumento: 'tipo_documento',
-    numeroDocumento: 'numero_documento',
-    correoElectronico: 'correo_electronico',
-  }
-  const out = {}
-  Object.keys(obj).forEach((k) => {
-    const nk = map[k] || k
-    out[nk] = obj[k]
-  })
-  return out
+function getEnvBaseUrl() {
+  const vite = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {}
+  const candidates = [
+    vite.VITE_API_URL,
+    process.env?.VITE_API_URL,
+    process.env?.REACT_APP_API_URL,
+    process.env?.VUE_APP_API_URL,
+  ].filter(Boolean)
+  // Fallback to backend host without proxy
+  return candidates[0] || 'http://localhost:4000'
 }
+
+const BASE_URL = `${String(getEnvBaseUrl()).replace(/\/$/, '')}/clientes`
 
 function toCamel(obj = {}) {
   const map = {
+    idCliente: 'id',
+    id_cliente: 'id',
     tipo_cliente: 'tipoCliente',
     nombre_razon_social: 'nombreRazonSocial',
     tipo_documento: 'tipoDocumento',
@@ -27,19 +26,28 @@ function toCamel(obj = {}) {
     correo_electronico: 'correoElectronico',
   }
   const out = {}
-  Object.keys(obj).forEach((k) => {
+  Object.keys(obj || {}).forEach((k) => {
     const nk = map[k] || k
     out[nk] = obj[k]
   })
   return out
 }
 
+function trimStrings(obj = {}) {
+  const out = {}
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    out[k] = typeof v === 'string' ? v.trim() : v
+  })
+  return out
+}
+
 async function request(path, { method = 'GET', body } = {}) {
   const { token } = useSession()
+  const authToken = token?.value || localStorage.getItem('token') || ''
   const headers = {
-    'Accept': 'application/json',
+    Accept: 'application/json',
     'Content-Type': 'application/json',
-    ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
+    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
   }
 
   const res = await fetch(path, {
@@ -53,8 +61,19 @@ async function request(path, { method = 'GET', body } = {}) {
   const data = isJson ? await res.json().catch(() => ({})) : null
 
   if (!res.ok) {
-    const apiMessage = (data && (data.message || data.error)) || `Error ${res.status}`
-    const err = new Error(apiMessage)
+    if (res.status === 401) {
+      try {
+        await router.push({ name: 'Inicio-sesion' })
+      } catch (_) {
+        // no-op
+      }
+    }
+    const message =
+      (res.status === 400 && (data?.error || 'Solicitud inválida')) ||
+      (res.status === 404 && 'Ruta no encontrada') ||
+      (data && (data.message || data.error)) ||
+      `Error ${res.status}`
+    const err = new Error(message)
     err.status = res.status
     err.payload = data
     throw err
@@ -78,22 +97,30 @@ export async function obtenerCliente(id) {
 }
 
 export async function crearCliente(payload) {
-  const data = await request(BASE_URL, { method: 'POST', body: toSnake(payload) })
+  const normalized = trimStrings(payload)
+  // Backend expects camelCase payload; accept snake_case inputs and convert
+  const body = toCamel(normalized)
+  const data = await request(BASE_URL, { method: 'POST', body })
   return toCamel(data)
 }
 
 export async function actualizarCliente(id, payload) {
   if (!id) throw new Error('ID del cliente requerido')
+  const normalized = trimStrings(payload)
+  // Convert any snake_case input to camelCase before sending
+  const body = toCamel(normalized)
   const data = await request(`${BASE_URL}/${encodeURIComponent(id)}`, {
     method: 'PUT',
-    body: toSnake(payload),
+    body,
   })
   return toCamel(data)
 }
 
 export async function eliminarCliente(id) {
   if (!id) throw new Error('ID del cliente requerido')
-  await request(`${BASE_URL}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  await request(`${BASE_URL}/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
   return true
 }
 
