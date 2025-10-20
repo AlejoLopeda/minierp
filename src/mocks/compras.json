@@ -1,0 +1,23 @@
+[
+  {
+    "id": "cmp-001",
+    "fecha": "2025-10-01T10:00:00.000Z",
+    "cliente": {
+      "id": "cli-001",
+      "nombre": "Inversiones ABC SAC",
+      "numeroDocumento": "20123456789"
+    },
+    "items": [
+      {
+        "productoId": "prd-001",
+        "sku": "LP-14PRO",
+        "nombre": "Laptop Profesional 14\"",
+        "cantidad": 2,
+        "precioUnitario": 4599.9,
+        "subtotal": 9199.8
+      }
+    ],
+    "total": 9199.8,
+    "notas": "Orden inicial de laptops"
+  }
+]

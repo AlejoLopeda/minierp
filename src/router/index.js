@@ -8,6 +8,8 @@ import ProductosCreatePage from '../views/productos/ProductosCreatePage.vue'
 import ClientesCreatePage from '../views/clientes/ClientesCreatePage.vue'
 import ClientesListPage from '../views/clientes/ClientesListPage.vue'
 import ClientesEditPage from '../views/clientes/ClientesEditPage.vue'
+import ComprasListPage from '../views/compras/ComprasListPage.vue'
+import ComprasCreatePage from '../views/compras/ComprasCreatePage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
@@ -18,6 +20,8 @@ const routes = [
   { path: '/clientes', name: 'ClientesList', component: ClientesListPage, meta: { requiresAuth: true } },
   { path: '/clientes/nuevo', name: 'ClientesCrear', component: ClientesCreatePage, meta: { requiresAuth: true } },
   { path: '/clientes/:id/editar', name: 'ClientesEditar', component: ClientesEditPage, props: true, meta: { requiresAuth: true } },
+  { path: '/compras', name: 'ComprasList', component: ComprasListPage, meta: { requiresAuth: true } },
+  { path: '/compras/nueva', name: 'ComprasCrear', component: ComprasCreatePage, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

@@ -1,17 +1,32 @@
 import { computed, ref } from 'vue'
-import { crearProducto, obtenerProductos } from '@/services/productoService'
+import { crearProducto, obtenerProductos, onProductoActualizado } from '@/services/productoService'
 
 const productos = ref([])
 const isLoaded = ref(false)
 const isLoading = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
+let unsubscribeActualizado = null
+let eventosVinculados = false
 
 function setError(message) {
   errorMessage.value = message || ''
 }
 
 export function useProductos() {
+  if (!eventosVinculados) {
+    eventosVinculados = true
+    unsubscribeActualizado = onProductoActualizado((productoActualizado) => {
+      if (!productoActualizado?.id) return
+      const index = productos.value.findIndex((item) => item.id === productoActualizado.id)
+      if (index === -1) return
+      const actualizado = { ...productos.value[index], ...productoActualizado }
+      const copia = [...productos.value]
+      copia[index] = actualizado
+      productos.value = copia
+    })
+  }
+
   async function cargarProductos({ force = false } = {}) {
     if (isLoading.value) return
     if (isLoaded.value && !force) return
@@ -64,4 +79,11 @@ export function useProductos() {
     registrarProducto,
     limpiarError,
   }
+}
+
+export function disposeProductosListener() {
+  if (typeof unsubscribeActualizado === 'function') {
+    unsubscribeActualizado()
+  }
+  eventosVinculados = false
 }
