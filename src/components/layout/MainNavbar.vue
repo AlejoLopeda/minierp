@@ -23,6 +23,7 @@ export default {
     const links = [
       { label: 'Inicio', route: '' },
       { label: 'Productos', route: 'productos' },
+      { label: 'Terceros', route: 'terceros' },
       { label: 'Ventas', route: 'ventas' },
       { label: 'Compras', route: 'compras' },
       { label: 'Reportes', route: 'reportes' }

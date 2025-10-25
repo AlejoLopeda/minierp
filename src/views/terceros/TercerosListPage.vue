@@ -2,32 +2,25 @@
   <section class="clientes">
     <header class="clientes__header">
       <div class="clientes__headings">
-        <h1 class="clientes__title">Clientes</h1>
-        <p class="clientes__subtitle">Gestiona tus clientes. Total: <strong>{{ totalClientes }}</strong></p>
+        <h1 class="clientes__title">Terceros</h1>
+        <p class="clientes__subtitle">Gestiona tus terceros. Total: <strong>{{ totalClientes }}</strong></p>
       </div>
-      <button type="button" class="clientes__primary-button" @click="irACrear">Nuevo cliente</button>
+      <button type="button" class="clientes__primary-button" @click="irACrear">Nuevo tercero</button>
     </header>
 
     <div class="clientes__toolbar">
-      <input
-        v-model.trim="searchQuery"
-        class="clientes__search"
-        type="text"
-        placeholder="Buscar por nombre o razón social"
-      >
+      <input v-model.trim="searchQuery" class="clientes__search" type="text" placeholder="Buscar por nombre o razón social">
     </div>
 
     <div v-if="isLoading" class="clientes__state">
-      <span class="clientes__state-text">Cargando clientes...</span>
+      <span class="clientes__state-text">Cargando terceros...</span>
     </div>
-
     <div v-else-if="errorMessage" class="clientes__state clientes__state--error">
       <span class="clientes__state-text">{{ errorMessage }}</span>
       <button type="button" class="clientes__secondary-button" @click="reintentar">Reintentar</button>
     </div>
-
     <div v-else-if="clientesFiltrados.length === 0" class="clientes__state">
-      <span class="clientes__state-text">No se encontraron clientes.</span>
+      <span class="clientes__state-text">No se encontraron terceros.</span>
     </div>
 
     <div v-else class="clientes__table-wrapper">
@@ -44,7 +37,7 @@
         <tbody>
           <tr v-for="c in clientesFiltrados" :key="c.id">
             <td>{{ c.nombreRazonSocial }}</td>
-            <td>{{ c.tipoCliente }}</td>
+            <td>{{ c.tipoTercero }}</td>
             <td>{{ c.tipoDocumento }} {{ c.numeroDocumento }}</td>
             <td>{{ c.correoElectronico }}</td>
             <td class="clientes__column--actions">
@@ -61,53 +54,32 @@
 <script>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useClientes } from '@/composables/useClientes'
+import { useTerceros } from '@/composables/useTerceros'
 
 export default {
-  name: 'ClientesListPage',
+  name: 'TercerosListPage',
   setup() {
     const router = useRouter()
-    const {
-      clientesFiltrados,
-      isLoading,
-      errorMessage,
-      totalClientes,
-      cargarClientes,
-      searchQuery,
-      eliminar,
-    } = useClientes()
+    const { clientesFiltrados, isLoading, errorMessage, totalClientes, cargarClientes, searchQuery, eliminar } = useTerceros()
 
-    const irACrear = () => router.push({ name: 'ClientesCrear' })
-    const irAEditar = (id) => router.push({ name: 'ClientesEditar', params: { id } })
+    const irACrear = () => router.push({ name: 'TercerosCrear' })
+    const irAEditar = (id) => router.push({ name: 'TercerosEditar', params: { id } })
     const reintentar = () => cargarClientes({ force: true })
-    const confirmarEliminar = async (cliente) => {
-      const ok = window.confirm(`¿Eliminar cliente "${cliente.nombreRazonSocial}"?`)
+    const confirmarEliminar = async (tercero) => {
+      const ok = window.confirm(`¿Eliminar tercero "${tercero.nombreRazonSocial}"?`)
       if (!ok) return
-      try {
-        await eliminar(cliente.id)
-      } catch (error) {
-        // error ya manejado en composable
-      }
+      try { await eliminar(tercero.id) } catch (error) { void error }
     }
 
     onMounted(() => cargarClientes())
 
-    return {
-      clientesFiltrados,
-      isLoading,
-      errorMessage,
-      totalClientes,
-      searchQuery,
-      irACrear,
-      irAEditar,
-      reintentar,
-      confirmarEliminar,
-    }
+    return { clientesFiltrados, isLoading, errorMessage, totalClientes, searchQuery, irACrear, irAEditar, reintentar, confirmarEliminar }
   },
 }
 </script>
 
 <style scoped>
+/* Se reutilizan las mismas clases de estilos que clientes */
 .clientes { width: min(960px, 100%); margin: 0 auto; background: #fff; border-radius: 16px; padding: 2rem; box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
 .clientes__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
 .clientes__headings { display: flex; flex-direction: column; gap: 0.35rem; }
@@ -130,4 +102,3 @@ export default {
 .clientes__state--error { color: #b3261e; border-color: rgba(179,38,30,.35); background: rgba(179,38,30,.08); }
 .clientes__state-text { font-size: 0.95rem; }
 </style>
-
