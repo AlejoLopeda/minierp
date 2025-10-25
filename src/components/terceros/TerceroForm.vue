@@ -2,13 +2,13 @@
   <form class="cliente-form__form" @submit.prevent="onSubmit">
     <div class="cliente-form__grid">
       <label class="cliente-form__field">
-        <span class="cliente-form__label">Tipo de cliente</span>
-        <select v-model="local.tipoCliente" required>
+        <span class="cliente-form__label">Tipo de tercero</span>
+        <select v-model="local.tipoTercero" required>
           <option value="">Seleccione</option>
-          <option value="Natural">Natural</option>
-          <option value="Juridica">Jurídica</option>
+          <option value="Cliente">Cliente</option>
+          <option value="Proveedor">Proveedor</option>
         </select>
-        <small v-if="errors.tipoCliente" class="cliente-form__error">{{ errors.tipoCliente }}</small>
+        <small v-if="errors.tipoTercero" class="cliente-form__error">{{ errors.tipoTercero }}</small>
       </label>
 
       <label class="cliente-form__field">
@@ -38,8 +38,13 @@
 
       <label class="cliente-form__field cliente-form__field--full">
         <span class="cliente-form__label">Correo electrónico</span>
-        <input v-model.trim="local.correoElectronico" type="email" placeholder="cliente@correo.com" required>
+        <input v-model.trim="local.correoElectronico" type="email" placeholder="tercero@correo.com" required>
         <small v-if="errors.correoElectronico" class="cliente-form__error">{{ errors.correoElectronico }}</small>
+      </label>
+
+      <label class="cliente-form__field cliente-form__field--full">
+        <span class="cliente-form__label">Teléfono (opcional)</span>
+        <input v-model.trim="local.telefono" type="text" placeholder="+57 300 000 0000">
       </label>
     </div>
 
@@ -48,18 +53,18 @@
     <div class="cliente-form__actions">
       <button type="button" class="cliente-form__secondary-button" @click="$emit('cancel')">Cancelar</button>
       <button type="submit" class="cliente-form__primary-button" :disabled="loading || !esValido">
-        {{ loading ? (mode === 'edit' ? 'Guardando...' : 'Creando...') : (mode === 'edit' ? 'Guardar cambios' : 'Crear cliente') }}
+        {{ loading ? (mode === 'edit' ? 'Guardando...' : 'Creando...') : (mode === 'edit' ? 'Guardar cambios' : 'Crear tercero') }}
       </button>
     </div>
   </form>
-</template>
+  </template>
 
 <script>
 import { computed, reactive, watch } from 'vue'
-import { validateCliente } from '@/services/clienteService'
+import { validateTercero } from '@/services/terceroService'
 
 export default {
-  name: 'ClienteForm',
+  name: 'TerceroForm',
   props: {
     modelValue: { type: Object, default: () => ({}) },
     loading: { type: Boolean, default: false },
@@ -69,24 +74,25 @@ export default {
   emits: ['update:modelValue', 'submit', 'cancel'],
   setup(props, { emit }) {
     const local = reactive({
-      tipoCliente: props.modelValue.tipoCliente || '',
+      tipoTercero: props.modelValue.tipoTercero || '',
       nombreRazonSocial: props.modelValue.nombreRazonSocial || '',
       tipoDocumento: props.modelValue.tipoDocumento || '',
       numeroDocumento: props.modelValue.numeroDocumento || '',
       correoElectronico: props.modelValue.correoElectronico || '',
+      telefono: props.modelValue.telefono || '',
     })
 
     const errors = reactive({})
 
-    // Keep local state in sync when parent modelValue changes (e.g., after GET)
     watch(
       () => props.modelValue,
       (val = {}) => {
-        local.tipoCliente = val.tipoCliente || ''
+        local.tipoTercero = val.tipoTercero || ''
         local.nombreRazonSocial = val.nombreRazonSocial || ''
         local.tipoDocumento = val.tipoDocumento || ''
         local.numeroDocumento = val.numeroDocumento || ''
         local.correoElectronico = val.correoElectronico || ''
+        local.telefono = val.telefono || ''
       },
       { deep: true, immediate: true }
     )
@@ -97,10 +103,10 @@ export default {
       { deep: true }
     )
 
-    const esValido = computed(() => Object.keys(validateCliente(local)).length === 0)
+    const esValido = computed(() => Object.keys(validateTercero(local)).length === 0)
 
     const onSubmit = () => {
-      const validation = validateCliente(local)
+      const validation = validateTercero(local)
       Object.keys(errors).forEach((k) => delete errors[k])
       Object.assign(errors, validation)
       if (Object.keys(validation).length) return

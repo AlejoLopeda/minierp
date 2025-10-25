@@ -2,72 +2,49 @@
   <section class="cliente-form">
     <header class="cliente-form__header">
       <div>
-        <h1 class="cliente-form__title">Editar cliente</h1>
-        <p class="cliente-form__subtitle">Actualiza los datos del cliente.</p>
+        <h1 class="cliente-form__title">Editar tercero</h1>
+        <p class="cliente-form__subtitle">Actualiza los datos del tercero.</p>
       </div>
-      <button type="button" class="cliente-form__secondary-button" @click="volverAlListado">
-        Volver al listado
-      </button>
+      <button type="button" class="cliente-form__secondary-button" @click="volverAlListado">Volver al listado</button>
     </header>
 
-    <div v-if="isLoading" class="cliente-form__placeholder">Cargando cliente...</div>
+    <div v-if="isLoading" class="cliente-form__placeholder">Cargando tercero...</div>
     <div v-else-if="errorMessage" class="cliente-form__alert">{{ errorMessage }}</div>
-    <ClienteForm
-      v-else
-      v-model="form"
-      :loading="isSaving"
-      :error="errorMessage"
-      mode="edit"
-      @submit="handleSubmit"
-      @cancel="volverAlListado"
-    />
+    <TerceroForm v-else v-model="form" :loading="isSaving" :error="errorMessage" mode="edit" @submit="handleSubmit" @cancel="volverAlListado" />
   </section>
 </template>
 
 <script>
 import { reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useClientes } from '@/composables/useClientes'
-import ClienteForm from '@/components/clientes/ClienteForm.vue'
+import { useTerceros } from '@/composables/useTerceros'
+import TerceroForm from '@/components/terceros/TerceroForm.vue'
 
 export default {
-  name: 'ClientesEditPage',
-  components: { ClienteForm },
+  name: 'TercerosEditPage',
+  components: { TerceroForm },
   setup() {
     const route = useRoute()
     const router = useRouter()
-    const { cargarClientePorId, guardarCambios, isLoading, isSaving, errorMessage, current, limpiarError } = useClientes()
+    const { cargarClientePorId, guardarCambios, isLoading, isSaving, errorMessage, current, limpiarError } = useTerceros()
 
-    const form = reactive({
-      tipoCliente: '',
-      nombreRazonSocial: '',
-      tipoDocumento: '',
-      numeroDocumento: '',
-      correoElectronico: '',
-    })
+    const form = reactive({ tipoTercero: '', nombreRazonSocial: '', tipoDocumento: '', numeroDocumento: '', correoElectronico: '', telefono: '' })
 
     onMounted(async () => {
       try {
         const data = await cargarClientePorId(route.params.id)
         Object.assign(form, data)
-      } catch (error) {
-        // mensaje ya manejado
-      }
+      } catch (error) { void error }
     })
 
     const handleSubmit = async (payload) => {
       try {
         await guardarCambios(current.value.id, payload)
-        router.push({ name: 'ClientesList' })
-      } catch (error) {
-        // mensaje manejado por composable
-      }
+        router.push({ name: 'TercerosList' })
+      } catch (error) { void error }
     }
 
-    const volverAlListado = () => {
-      limpiarError()
-      router.push({ name: 'ClientesList' })
-    }
+    const volverAlListado = () => { limpiarError(); router.push({ name: 'TercerosList' }) }
 
     return { form, isLoading, isSaving, errorMessage, handleSubmit, volverAlListado }
   },
@@ -84,4 +61,3 @@ export default {
 .cliente-form__placeholder { display: grid; place-items: center; height: 120px; border: 1px dashed #c7cacf; border-radius: 12px; background: #f9fafb; color: #5f6368; }
 .cliente-form__alert { padding: 1rem; border-radius: 12px; background-color: rgba(179,38,30,0.08); color: #b3261e; border: 1px solid rgba(179,38,30,0.2); font-size: 0.9rem; }
 </style>
-
