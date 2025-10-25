@@ -7,8 +7,8 @@
     <p>Optimiza tus procesos con un sistema rápido, intuitivo y moderno.</p>
 
     <div class="home__cta">
-      <button type="button" class="home__primary-button" @click="irACrearCliente">
-        Empezar creando un cliente
+      <button type="button" class="home__primary-button" @click="irACrearTercero">
+        Empezar creando un tercero
       </button>
     </div>
   </div>
@@ -21,10 +21,10 @@ export default {
   name: 'HomePage',
   setup() {
     const router = useRouter()
-    const irACrearCliente = () => {
-      router.push({ name: 'ClientesCrear' })
+    const irACrearTercero = () => {
+      router.push({ name: 'TercerosCrear' })
     }
-    return { irACrearCliente }
+    return { irACrearTercero }
   },
 }
 </script>

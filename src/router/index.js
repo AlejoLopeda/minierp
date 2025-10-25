@@ -8,10 +8,11 @@ import { useSession } from '../composables/useSession'
 import ProductosListPage from '../views/productos/ProductosListPage.vue'
 import ProductosCreatePage from '../views/productos/ProductosCreatePage.vue'
 
-// Clientes
-import ClientesCreatePage from '../views/clientes/ClientesCreatePage.vue'
-import ClientesListPage from '../views/clientes/ClientesListPage.vue'
-import ClientesEditPage from '../views/clientes/ClientesEditPage.vue'
+// Terceros
+import TercerosCreatePage from '../views/terceros/TercerosCreatePage.vue'
+import TercerosListPage from '../views/terceros/TercerosListPage.vue'
+import TercerosEditPage from '../views/terceros/TercerosEditPage.vue'
+//Compras
 import ComprasListPage from '../views/compras/ComprasListPage.vue'
 import ComprasCreatePage from '../views/compras/ComprasCreatePage.vue'
 
@@ -29,10 +30,10 @@ const routes = [
   { path: '/productos', name: 'ProductosList', component: ProductosListPage, meta: { requiresAuth: true } },
   { path: '/productos/nuevo', name: 'ProductosCrear', component: ProductosCreatePage, meta: { requiresAuth: true } },
 
-  // Clientes
-  { path: '/clientes', name: 'ClientesList', component: ClientesListPage, meta: { requiresAuth: true } },
-  { path: '/clientes/nuevo', name: 'ClientesCrear', component: ClientesCreatePage, meta: { requiresAuth: true } },
-  { path: '/clientes/:id/editar', name: 'ClientesEditar', component: ClientesEditPage, props: true, meta: { requiresAuth: true } },
+  // Terceros
+  { path: '/terceros', name: 'TercerosList', component: TercerosListPage, meta: { requiresAuth: true } },
+  { path: '/terceros/nuevo', name: 'TercerosCrear', component: TercerosCreatePage, meta: { requiresAuth: true } },
+  { path: '/terceros/:id/editar', name: 'TercerosEditar', component: TercerosEditPage, props: true, meta: { requiresAuth: true } },
 
   // Ventas
   { path: '/ventas', name: 'VentasList', component: VentasListPage, meta: { requiresAuth: true } },
