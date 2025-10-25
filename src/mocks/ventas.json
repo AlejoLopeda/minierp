@@ -1,0 +1,23 @@
+[
+  {
+    "id": "vta-001",
+    "fecha": "2025-10-10T12:00:00.000Z",
+    "cliente": {
+      "id": "cli-001",
+      "nombre": "Inversiones ABC SAC",
+      "numeroDocumento": "20123456789"
+    },
+    "items": [
+      {
+        "productoId": "prd-003",
+        "sku": "MSE-ERGO",
+        "nombre": "Mouse Inalambrico Ergonómico",
+        "cantidad": 2,
+        "precioUnitario": 129.99,
+        "subtotal": 259.98
+      }
+    ],
+    "total": 259.98,
+    "notas": "Venta de prueba"
+  }
+]
