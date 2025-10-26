@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <section class="compra-form">
     <header class="compra-form__header">
       <div>
         <h1 class="compra-form__title">Registrar compra</h1>
         <p class="compra-form__subtitle">
-          Selecciona el cliente y los productos adquiridos para actualizar el stock automáticamente.
+          Selecciona el cliente y los productos adquiridos para actualizar el stock automÃ¡ticamente.
         </p>
       </div>
       <button type="button" class="compra-form__secondary-button" @click="volverAlListado">
@@ -27,7 +27,7 @@
             v-else-if="clientesOrdenados.length === 0"
             class="compra-form__hint compra-form__hint--warning"
           >
-            No hay clientes registrados. Crea uno desde el módulo de clientes.
+            No hay clientes registrados. Crea uno desde el mÃ³dulo de clientes.
           </small>
         </label>
 
@@ -155,7 +155,7 @@
           <strong class="compra-form__resumen-value">{{ productosSeleccionados }}</strong>
         </div>
         <div>
-          <span class="compra-form__resumen-label">Artículos totales</span>
+          <span class="compra-form__resumen-label">ArtÃ­culos totales</span>
           <strong class="compra-form__resumen-value">{{ totalArticulos }}</strong>
         </div>
         <div>
@@ -183,7 +183,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCompras } from '@/composables/useCompras'
-import { useTerceros } from '@/composables/useTerceros'
+import { useClientes } from '@/composables/useClientes'
 import { useProductos } from '@/composables/useProductos'
 
 let lineaCounter = 0
@@ -213,7 +213,7 @@ export default {
       isLoading: clientesCargandoRef,
       errorMessage: clientesErrorRef,
       cargarClientes,
-    } = useTerceros()
+    } = useClientes()
     const {
       productos,
       isLoading: productosCargandoRef,
@@ -319,13 +319,13 @@ export default {
       limpiarErrorCompras()
 
       if (!esValido.value) {
-        formError.value = 'Revisa que el cliente y los productos tengan datos válidos.'
+        formError.value = 'Revisa que el cliente y los productos tengan datos vÃ¡lidos.'
         return
       }
 
       const cliente = clientesOrdenados.value.find((item) => item.id === clienteId.value)
       if (!cliente) {
-        formError.value = 'El cliente seleccionado ya no está disponible.'
+        formError.value = 'El cliente seleccionado ya no estÃ¡ disponible.'
         return
       }
 

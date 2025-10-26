@@ -1,12 +1,12 @@
-import { computed, ref } from 'vue'
+﻿import { computed, ref } from 'vue'
 import {
-  listarClientes,
-  obtenerCliente,
-  crearCliente,
-  actualizarCliente,
-  eliminarCliente,
-  validateCliente,
-} from '@/services/clienteService'
+  listarTerceros,
+  obtenerTercero,
+  crearTercero,
+  actualizarTercero,
+  eliminarTercero,
+  validateTercero,
+} from '@/services/terceroService'
 
 const clientes = ref([])
 const current = ref(null)
@@ -21,7 +21,7 @@ function setError(message) {
   errorMessage.value = message || ''
 }
 
-export function useClientes() {
+export function useTerceros() {
   async function cargarClientes({ force = false } = {}) {
     if (isLoading.value) return
     if (isLoaded.value && !force) return
@@ -30,7 +30,7 @@ export function useClientes() {
     setError('')
 
     try {
-      const items = await listarClientes()
+      const items = await listarTerceros()
       clientes.value = items
       isLoaded.value = true
     } catch (error) {
@@ -45,7 +45,7 @@ export function useClientes() {
     isLoading.value = true
     setError('')
     try {
-      const item = await obtenerCliente(id)
+      const item = await obtenerTercero(id)
       current.value = item
       return item
     } catch (error) {
@@ -58,7 +58,7 @@ export function useClientes() {
 
   async function registrarCliente(payload) {
     if (isSaving.value) return null
-    const validation = validateCliente(payload)
+    const validation = validateTercero(payload)
     if (Object.keys(validation).length) {
       const first = Object.values(validation)[0]
       setError(first)
@@ -70,7 +70,7 @@ export function useClientes() {
     isSaving.value = true
     setError('')
     try {
-      const nuevo = await crearCliente(payload)
+      const nuevo = await crearTercero(payload)
       clientes.value = [...clientes.value, nuevo]
       return nuevo
     } catch (error) {
@@ -83,7 +83,7 @@ export function useClientes() {
 
   async function guardarCambios(id, payload) {
     if (isSaving.value) return null
-    const validation = validateCliente(payload)
+    const validation = validateTercero(payload)
     if (Object.keys(validation).length) {
       const first = Object.values(validation)[0]
       setError(first)
@@ -95,7 +95,7 @@ export function useClientes() {
     isSaving.value = true
     setError('')
     try {
-      const actualizado = await actualizarCliente(id, payload)
+      const actualizado = await actualizarTercero(id, payload)
       clientes.value = clientes.value.map((c) => (c.id === id ? actualizado : c))
       current.value = actualizado
       return actualizado
@@ -112,7 +112,7 @@ export function useClientes() {
     isDeleting.value = true
     setError('')
     try {
-      await eliminarCliente(id)
+      await eliminarTercero(id)
       clientes.value = clientes.value.filter((c) => c.id !== id)
       if (current.value?.id === id) current.value = null
       return true
