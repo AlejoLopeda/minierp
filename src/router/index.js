@@ -15,14 +15,12 @@ import TercerosEditPage from '../views/terceros/TercerosEditPage.vue'
 //Compras
 import ComprasListPage from '../views/compras/ComprasListPage.vue'
 import ComprasCreatePage from '../views/compras/ComprasCreatePage.vue'
-import VentasListPage from '../views/ventas/VentasListPage.vue'
-import VentasCreatePage from '../views/ventas/VentasCreatePage.vue'
 
 // Ventas
 import VentasListPage from '../views/ventas/VentasListPage.vue'
 import VentasCreatePage from '../views/ventas/VentasCreatePage.vue'
-import VentasEditPage from '../views/ventas/VentasEditPage.vue'
-
+/* import VentasEditPage from '../views/ventas/VentasEditPage.vue'
+ */
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
   { path: '/inicio-sesion', name: 'Inicio-sesion', component: LoginPage, meta: { noLayout: true } },
@@ -39,13 +37,11 @@ const routes = [
 
   // Ventas
   { path: '/ventas', name: 'VentasList', component: VentasListPage, meta: { requiresAuth: true } },
-  { path: '/ventas/nuevo', name: 'VentasCrear', component: VentasCreatePage, meta: { requiresAuth: true } },
-  { path: '/ventas/:id/editar', name: 'VentasEditar', component: VentasEditPage, props: true, meta: { requiresAuth: true } },
-   // compras
+  { path: '/ventas/nueva', name: 'VentasCrear', component: VentasCreatePage, meta: { requiresAuth: true } },
+/*   { path: '/ventas/:id/editar', name: 'VentasEditar', component: VentasEditPage, props: true, meta: { requiresAuth: true } },
+ */   // compras
   { path: '/compras', name: 'ComprasList', component: ComprasListPage, meta: { requiresAuth: true } },
   { path: '/compras/nueva', name: 'ComprasCrear', component: ComprasCreatePage, meta: { requiresAuth: true } },
-  { path: '/ventas', name: 'VentasList', component: VentasListPage, meta: { requiresAuth: true } },
-  { path: '/ventas/nueva', name: 'VentasCrear', component: VentasCreatePage, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

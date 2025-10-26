@@ -105,7 +105,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVentas } from '@/composables/useVentas'
-import { useClientes } from '@/composables/useClientes'
+import { useTerceros } from '@/composables/useTerceros'
 import { useProductos } from '@/composables/useProductos'
 
 let lineaCounter = 0
@@ -119,7 +119,7 @@ export default {
   setup() {
     const router = useRouter()
     const { registrarVenta, isSaving: isGuardandoRef, errorMessage: ventasErrorRef, limpiarError: limpiarErrorVentas } = useVentas()
-    const { clientes, isLoading: clientesCargandoRef, errorMessage: clientesErrorRef, cargarClientes } = useClientes()
+    const { clientes, isLoading: clientesCargandoRef, errorMessage: clientesErrorRef, cargarClientes } = useTerceros()
     const { productos, isLoading: productosCargandoRef, errorMessage: productosErrorRef, cargarProductos } = useProductos()
 
     const clienteId = ref('')

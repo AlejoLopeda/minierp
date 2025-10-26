@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <section class="compra-form">
     <header class="compra-form__header">
       <div>
-        <h1 class="compra-form__title">Registrar compra</h1>
+        <h1 class="compra-form__title">Registrar venta</h1>
         <p class="compra-form__subtitle">
-          Selecciona el cliente y los productos adquiridos para actualizar el stock automáticamente.
+          Selecciona el cliente y los productos vendidos. Al registrar la venta se descontarÃ¡ el stock.
         </p>
       </div>
       <button type="button" class="compra-form__secondary-button" @click="volverAlListado">
@@ -22,70 +22,34 @@
               {{ cliente.nombreRazonSocial || cliente.nombre || 'Cliente sin nombre' }}
             </option>
           </select>
-          <small v-if="clientesCargando" class="compra-form__hint">Cargando clientes...</small>
-          <small
-            v-else-if="clientesOrdenados.length === 0"
-            class="compra-form__hint compra-form__hint--warning"
-          >
-            No hay clientes registrados. Crea uno desde el módulo de clientes.
-          </small>
         </label>
 
         <label class="compra-form__field compra-form__field--full">
           <span class="compra-form__label">Notas (opcional)</span>
-          <textarea
-            v-model.trim="notas"
-            rows="3"
-            class="compra-form__textarea"
-            placeholder="Observaciones o referencia del documento"
-            :disabled="isGuardando"
-          />
+          <textarea v-model.trim="notas" rows="3" class="compra-form__textarea" placeholder="Observaciones" :disabled="isGuardando" />
         </label>
       </div>
 
       <section class="compra-form__detalle">
         <header class="compra-form__detalle-header">
           <h2 class="compra-form__detalle-title">Detalle de productos</h2>
-          <button
-            type="button"
-            class="compra-form__ghost-button"
-            @click="agregarLinea"
-            :disabled="isGuardando || productosDisponibles.length === 0"
-          >
+          <button type="button" class="compra-form__ghost-button" @click="agregarLinea" :disabled="isGuardando || productosDisponibles.length === 0">
             Agregar producto
           </button>
         </header>
 
-        <div v-if="productosCargando" class="compra-form__hint compra-form__hint--inline">
-          Cargando productos disponibles...
-        </div>
-        <div
-          v-else-if="productosDisponibles.length === 0"
-          class="compra-form__hint compra-form__hint--inline compra-form__hint--warning"
-        >
-          No hay productos disponibles. Registra productos antes de crear la compra.
+        <div v-if="productosCargando" class="compra-form__hint compra-form__hint--inline">Cargando productos disponibles...</div>
+        <div v-else-if="productosDisponibles.length === 0" class="compra-form__hint compra-form__hint--inline compra-form__hint--warning">
+          No hay productos disponibles.
         </div>
 
-        <div
-          v-for="linea in lineas"
-          :key="linea.id"
-          class="compra-form__linea"
-        >
+        <div v-for="linea in lineas" :key="linea.id" class="compra-form__linea">
           <div class="compra-form__linea-grid">
             <label class="compra-form__field">
               <span class="compra-form__label">Producto</span>
-              <select
-                v-model="linea.productoId"
-                class="compra-form__input"
-                @change="handleProductoChange(linea)"
-                :disabled="isGuardando"
-              >
+              <select v-model="linea.productoId" class="compra-form__input" @change="handleProductoChange(linea)" :disabled="isGuardando">
                 <option value="">Selecciona un producto</option>
-                <option
-                  v-for="producto in productosDisponibles"
-                  :key="producto.id"
-                  :value="producto.id"
-                >
+                <option v-for="producto in productosDisponibles" :key="producto.id" :value="producto.id">
                   {{ producto.nombre }} (Stock: {{ producto.stock }})
                 </option>
               </select>
@@ -93,61 +57,27 @@
 
             <label class="compra-form__field compra-form__field--compact">
               <span class="compra-form__label">Cantidad</span>
-              <input
-                v-model.number="linea.cantidad"
-                type="number"
-                min="1"
-                step="1"
-                class="compra-form__input"
-                :disabled="isGuardando"
-              >
+              <input v-model.number="linea.cantidad" type="number" min="1" step="1" class="compra-form__input" :disabled="isGuardando">
             </label>
 
             <label class="compra-form__field compra-form__field--compact">
               <span class="compra-form__label">Precio unitario</span>
-              <input
-                v-model.number="linea.precioUnitario"
-                type="number"
-                min="0"
-                step="0.01"
-                class="compra-form__input"
-                :disabled="isGuardando"
-              >
+              <input v-model.number="linea.precioUnitario" type="number" min="0" step="0.01" class="compra-form__input" :disabled="isGuardando">
             </label>
 
             <div class="compra-form__resumen">
               <span class="compra-form__resumen-label">Subtotal</span>
-              <strong class="compra-form__resumen-value">
-                {{ formatCurrency(calcularSubtotal(linea)) }}
-              </strong>
+              <strong class="compra-form__resumen-value">{{ formatCurrency(calcularSubtotal(linea)) }}</strong>
             </div>
           </div>
-          <button
-            type="button"
-            class="compra-form__link-button"
-            @click="quitarLinea(linea.id)"
-            :disabled="isGuardando || lineas.length === 1"
-          >
-            Quitar
-          </button>
+          <button type="button" class="compra-form__link-button" @click="quitarLinea(linea.id)" :disabled="isGuardando || lineas.length === 1">Quitar</button>
         </div>
       </section>
 
-      <div v-if="formError" class="compra-form__alert compra-form__alert--warning">
-        {{ formError }}
-      </div>
-
-      <div v-if="clientesError" class="compra-form__alert">
-        {{ clientesError }}
-      </div>
-
-      <div v-if="productosError" class="compra-form__alert">
-        {{ productosError }}
-      </div>
-
-      <div v-if="comprasError" class="compra-form__alert">
-        {{ comprasError }}
-      </div>
+  <div v-if="formError" class="compra-form__alert compra-form__alert--warning">{{ formError }}</div>
+  <div v-if="clientesError" class="compra-form__alert">{{ clientesError }}</div>
+  <div v-if="productosError" class="compra-form__alert">{{ productosError }}</div>
+  <div v-if="ventasError" class="compra-form__alert">{{ ventasError }}</div>
 
       <div class="compra-form__resumen-final">
         <div>
@@ -155,25 +85,17 @@
           <strong class="compra-form__resumen-value">{{ productosSeleccionados }}</strong>
         </div>
         <div>
-          <span class="compra-form__resumen-label">Artículos totales</span>
+          <span class="compra-form__resumen-label">ArtÃ­culos totales</span>
           <strong class="compra-form__resumen-value">{{ totalArticulos }}</strong>
         </div>
         <div>
-          <span class="compra-form__resumen-label">Total de la compra</span>
-          <strong class="compra-form__resumen-value compra-form__resumen-value--total">
-            {{ formatCurrency(totalCompra) }}
-          </strong>
+          <span class="compra-form__resumen-label">Total de la venta</span>
+          <strong class="compra-form__resumen-value compra-form__resumen-value--total">{{ formatCurrency(totalVenta) }}</strong>
         </div>
       </div>
 
       <div class="compra-form__actions">
-        <button
-          type="submit"
-          class="compra-form__primary-button"
-          :disabled="!esValido || isGuardando"
-        >
-          {{ isGuardando ? 'Guardando...' : 'Registrar compra' }}
-        </button>
+        <button type="submit" class="compra-form__primary-button" :disabled="!esValido || isGuardando">{{ isGuardando ? 'Guardando...' : 'Registrar venta' }}</button>
       </div>
     </form>
   </section>
@@ -182,55 +104,30 @@
 <script>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCompras } from '@/composables/useCompras'
-import { useTerceros } from '@/composables/useTerceros'
+import { useVentas } from '@/composables/useVentas'
+import { useClientes } from '@/composables/useClientes'
 import { useProductos } from '@/composables/useProductos'
 
 let lineaCounter = 0
-
 function crearLinea() {
   lineaCounter += 1
-  return reactive({
-    id: `linea-${lineaCounter}`,
-    productoId: '',
-    cantidad: 1,
-    precioUnitario: 0,
-  })
+  return reactive({ id: `linea-${lineaCounter}`, productoId: '', cantidad: 1, precioUnitario: 0 })
 }
 
 export default {
-  name: 'ComprasCreatePage',
+  name: 'VentasCreatePage',
   setup() {
     const router = useRouter()
-    const {
-      registrarCompra,
-      isSaving: isGuardandoRef,
-      errorMessage: comprasErrorRef,
-      limpiarError: limpiarErrorCompras,
-    } = useCompras()
-    const {
-      clientes,
-      isLoading: clientesCargandoRef,
-      errorMessage: clientesErrorRef,
-      cargarClientes,
-    } = useTerceros()
-    const {
-      productos,
-      isLoading: productosCargandoRef,
-      errorMessage: productosErrorRef,
-      cargarProductos,
-    } = useProductos()
+    const { registrarVenta, isSaving: isGuardandoRef, errorMessage: ventasErrorRef, limpiarError: limpiarErrorVentas } = useVentas()
+    const { clientes, isLoading: clientesCargandoRef, errorMessage: clientesErrorRef, cargarClientes } = useClientes()
+    const { productos, isLoading: productosCargandoRef, errorMessage: productosErrorRef, cargarProductos } = useProductos()
 
     const clienteId = ref('')
     const notas = ref('')
     const lineas = ref([crearLinea()])
     const formError = ref('')
 
-    const currencyFormatter = new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: 'PEN',
-      minimumFractionDigits: 2,
-    })
+    const currencyFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 })
 
     const productosDisponibles = computed(() => productos.value || [])
 
@@ -249,9 +146,7 @@ export default {
       return Number.isFinite(subtotal) ? subtotal : 0
     }
 
-    const totalCompra = computed(() =>
-      lineas.value.reduce((total, linea) => total + calcularSubtotal(linea), 0)
-    )
+    const totalVenta = computed(() => lineas.value.reduce((total, linea) => total + calcularSubtotal(linea), 0))
 
     const productosSeleccionados = computed(() => {
       const ids = new Set()
@@ -262,9 +157,7 @@ export default {
       return ids.size
     })
 
-    const totalArticulos = computed(() =>
-      lineas.value.reduce((total, linea) => total + Number(linea.cantidad || 0), 0)
-    )
+    const totalArticulos = computed(() => lineas.value.reduce((total, linea) => total + Number(linea.cantidad || 0), 0))
 
     const esValido = computed(() => {
       if (!clienteId.value) return false
@@ -276,11 +169,7 @@ export default {
         const precio = Number(linea.precioUnitario)
 
         return (
-          productoId &&
-          Number.isInteger(cantidad) &&
-          cantidad > 0 &&
-          Number.isFinite(precio) &&
-          precio >= 0
+          productoId && Number.isInteger(cantidad) && cantidad > 0 && Number.isFinite(precio) && precio >= 0
         )
       })
 
@@ -297,64 +186,40 @@ export default {
       }
     }
 
-    const agregarLinea = () => {
-      lineas.value.push(crearLinea())
-    }
+    const agregarLinea = () => { lineas.value.push(crearLinea()) }
+    const quitarLinea = (id) => { if (lineas.value.length === 1) return; lineas.value = lineas.value.filter((l) => l.id !== id) }
 
-    const quitarLinea = (id) => {
-      if (lineas.value.length === 1) return
-      lineas.value = lineas.value.filter((linea) => linea.id !== id)
-    }
-
-    const resetFormulario = () => {
-      clienteId.value = ''
-      notas.value = ''
-      lineaCounter = 0
-      lineas.value = [crearLinea()]
-      formError.value = ''
-    }
+    const resetFormulario = () => { clienteId.value = ''; notas.value = ''; lineaCounter = 0; lineas.value = [crearLinea()]; formError.value = '' }
 
     const handleSubmit = async () => {
       formError.value = ''
-      limpiarErrorCompras()
+      limpiarErrorVentas()
 
-      if (!esValido.value) {
-        formError.value = 'Revisa que el cliente y los productos tengan datos válidos.'
-        return
-      }
+      if (!esValido.value) { formError.value = 'Revisa que el cliente y los productos tengan datos vÃ¡lidos.'; return }
 
       const cliente = clientesOrdenados.value.find((item) => item.id === clienteId.value)
-      if (!cliente) {
-        formError.value = 'El cliente seleccionado ya no está disponible.'
-        return
-      }
+      if (!cliente) { formError.value = 'El cliente seleccionado ya no estÃ¡ disponible.'; return }
 
       const payload = {
         clienteId: cliente.id,
         clienteNombre: cliente.nombreRazonSocial || cliente.nombre || '',
         clienteDocumento: cliente.numeroDocumento || cliente.numero_documento || '',
         notas: notas.value,
-        items: lineas.value.map((linea) => ({
-          productoId: linea.productoId,
-          cantidad: Number.parseInt(linea.cantidad, 10),
-          precioUnitario: Number(linea.precioUnitario),
-        })),
+        items: lineas.value.map((linea) => ({ productoId: linea.productoId, cantidad: Number.parseInt(linea.cantidad, 10), precioUnitario: Number(linea.precioUnitario) })),
       }
 
       try {
-        await registrarCompra(payload)
+        await registrarVenta(payload)
         resetFormulario()
-        router.push({ name: 'ComprasList' })
+        router.push({ name: 'VentasList' })
       } catch (error) {
-        if (!comprasErrorRef.value) {
-          formError.value = error.message || 'No fue posible crear la compra.'
+        if (!ventasErrorRef.value) {
+          formError.value = error.message || 'No fue posible crear la venta.'
         }
       }
     }
 
-    const volverAlListado = () => {
-      router.push({ name: 'ComprasList' })
-    }
+    const volverAlListado = () => { router.push({ name: 'VentasList' }) }
 
     const formatCurrency = (valor) => {
       const monto = Number(valor)
@@ -363,13 +228,9 @@ export default {
     }
 
     onMounted(() => {
-      limpiarErrorCompras()
-      cargarClientes({ force: true }).catch(() => {
-        /* el mensaje se maneja en el composable */
-      })
-      cargarProductos({ force: true }).catch(() => {
-        /* el mensaje se maneja en el composable */
-      })
+      limpiarErrorVentas()
+      cargarClientes({ force: true }).catch(() => {})
+      cargarProductos({ force: true }).catch(() => {})
     })
 
     const isGuardando = computed(() => isGuardandoRef.value)
@@ -377,7 +238,7 @@ export default {
     const productosCargando = computed(() => productosCargandoRef.value)
     const clientesError = computed(() => clientesErrorRef.value)
     const productosError = computed(() => productosErrorRef.value)
-    const comprasError = computed(() => comprasErrorRef.value)
+    const ventasError = computed(() => ventasErrorRef.value)
 
     return {
       clienteId,
@@ -390,7 +251,7 @@ export default {
       volverAlListado,
       formatCurrency,
       calcularSubtotal,
-      totalCompra,
+      totalVenta,
       productosSeleccionados,
       totalArticulos,
       esValido,
@@ -401,7 +262,7 @@ export default {
       productosCargando,
       clientesError,
       productosError,
-      comprasError,
+      ventasError,
       formError,
     }
   },
