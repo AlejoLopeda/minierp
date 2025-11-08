@@ -37,7 +37,7 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Cliente</th>
+            <th>Proveedor</th>
             <th>Productos</th>
             <th class="compras__column--numeric">Artículos</th>
             <th class="compras__column--numeric">Total</th>
@@ -51,7 +51,7 @@
             </td>
             <td>
               <div class="compras__cliente-nombre">
-                {{ compra.cliente?.nombre || 'Cliente no especificado' }}
+                {{ compra.cliente?.nombre || 'Proveedor no especificado' }}
               </div>
               <small v-if="compra.cliente?.numeroDocumento" class="compras__small-text">
                 Documento: {{ compra.cliente.numeroDocumento }}
@@ -86,9 +86,9 @@ export default {
     const router = useRouter()
     const { compras, isLoading, errorMessage, totalCompras, totalInvertido, cargarCompras } = useCompras()
 
-    const currencyFormatter = new Intl.NumberFormat('es-PE', {
+    const currencyFormatter = new Intl.NumberFormat('es-CO', {
       style: 'currency',
-      currency: 'PEN',
+      currency: 'COP',
       minimumFractionDigits: 2,
     })
 
