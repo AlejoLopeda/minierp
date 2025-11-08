@@ -98,3 +98,16 @@ body {
   color: #555;
   font-size: 0.9em;
 }
+
+/* ===== Scroll reveal util ===== */
+.reveal { opacity: 0; transform: translateY(16px) scale(.98); filter: blur(6px); transition: opacity .5s ease, transform .6s cubic-bezier(.22,.61,.36,1), filter .6s ease; will-change: transform, opacity, filter; transition-delay: var(--rv-delay, 0ms); }
+.reveal.rv-left { transform: translateX(-16px) scale(.98); }
+.reveal.rv-right { transform: translateX(16px) scale(.98); }
+.reveal.rv-scale { transform: translateY(10px) scale(.94); }
+.reveal.is-visible { opacity: 1; transform: none; filter: blur(0); animation: rv-spring .7s cubic-bezier(.22,1,.36,1) both; }
+
+@keyframes rv-spring {
+  0% { transform: translateY(16px) scale(.98); }
+  60% { transform: translateY(-2px) scale(1.01); }
+  100% { transform: none; }
+}
