@@ -12,23 +12,25 @@
         @click="go(act.routeName)"
         :style="{ '--accent': act.accent }"
       >
-        <div class="qa__left">
-          <div class="qa__badge"><span class="qa__icon">{{ act.icon }}</span></div>
-          <div class="qa__text">
-            <div class="qa__title">{{ act.title }}</div>
-            <div class="qa__desc">{{ act.desc }}</div>
+        <div class="qa__inner">
+          <div class="qa__left">
+            <div class="qa__badge"><span class="qa__icon">{{ act.icon }}</span></div>
+            <div class="qa__text">
+              <div class="qa__title">{{ act.title }}</div>
+              <div class="qa__desc">{{ act.desc }}</div>
+            </div>
           </div>
-        </div>
-        <div class="qa__media">
-          <img
-            v-if="act.image"
-            class="qa__img"
-            :src="resolveImage(act.image)"
-            :alt="act.alt || act.title"
-            loading="lazy"
-            @error="$event.target.style.display='none'"
-          />
-          <span v-else class="qa__media-ph">Espacio para imagen</span>
+          <div class="qa__media">
+            <img
+              v-if="act.image"
+              class="qa__img"
+              :src="resolveImage(act.image)"
+              :alt="act.alt || act.title"
+              loading="lazy"
+              @error="$event.target.style.display='none'"
+            />
+            <span v-else class="qa__media-ph">Espacio para imagen</span>
+          </div>
         </div>
       </button>
     </div>
@@ -72,15 +74,19 @@ export default {
     }
 
     const tilt = (e) => {
-      const el = e.currentTarget
-      const r = el.getBoundingClientRect()
+      const card = e.currentTarget
+      const inner = card.querySelector('.qa__inner')
+      const r = card.getBoundingClientRect()
       const cx = e.clientX - r.left
       const cy = e.clientY - r.top
       const rx = ((cy / r.height) - 0.5) * -2.5
       const ry = ((cx / r.width) - 0.5) * 2.5
-      el.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`
+      if (inner) inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`
     }
-    const resetTilt = (e) => { e.currentTarget.style.transform = 'none' }
+    const resetTilt = (e) => {
+      const inner = e.currentTarget.querySelector('.qa__inner')
+      if (inner) inner.style.transform = 'none'
+    }
     return { go, tilt, resetTilt, actions, resolveImage }
   },
 }
@@ -105,7 +111,11 @@ export default {
   will-change: transform;
   overflow: hidden; /* evita overflow horizontal con sheen/tilt */
   backface-visibility: hidden;
+  contain: paint; /* aisla pintura y evita scrollbars intermitentes */
+  transform-style: preserve-3d;
+  perspective: 800px; /* perspectiva en el contenedor, no en body */
 }
+.qa__inner { display: flex; align-items: center; justify-content: space-between; width: 100%; will-change: transform; transform-style: preserve-3d; }
 .qa::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.28) 50%, transparent 60%); transform: translateX(-120%) skewX(-12deg); transition: transform .6s ease; }
 .qa--full { width: 100%; }
 .qa:hover { box-shadow: 0 16px 36px rgba(2, 6, 23, 0.12); }
