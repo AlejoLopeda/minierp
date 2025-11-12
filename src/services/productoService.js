@@ -1,7 +1,59 @@
 import productosSeed from '@/mocks/productos.json'
+import router from '@/router'
+import { useSession } from '@/composables/useSession'
 
 const STORAGE_KEY = 'minierp_productos'
 const PRODUCTO_ACTUALIZADO_EVENT = 'minierp:producto-actualizado'
+
+function getEnvBaseUrl() {
+  const vite = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {}
+  const candidates = [vite.VITE_API_URL, process.env?.VITE_API_URL, process.env?.REACT_APP_API_URL, process.env?.VUE_APP_API_URL].filter(Boolean)
+  return candidates[0] || 'http://localhost:4000'
+}
+
+const BASE_URL = `${String(getEnvBaseUrl()).replace(/\/$/, '')}/productos`
+
+async function request(path, { method = 'GET', body } = {}) {
+  const { token } = useSession()
+  const authToken = token?.value || localStorage.getItem('minierp_token') || localStorage.getItem('token') || ''
+  const headers = { Accept: 'application/json', 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) }
+
+  const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined })
+  const contentType = res.headers.get('content-type') || ''
+  const isJson = contentType.includes('application/json')
+  const data = isJson ? await res.json().catch(() => ({})) : null
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      // API de productos aun no implementada; permitir fallback silencioso
+      const err = new Error('NOT_IMPLEMENTED')
+      err.status = 404
+      throw err
+    }
+    if (res.status === 401) {
+      try { await router.push({ name: 'Inicio-sesion' }) } catch (e) { void e }
+    }
+    const message = (res.status === 400 && (data?.error || 'Solicitud inválida')) || (data && (data.message || data.error)) || `Error ${res.status}`
+    const err = new Error(message)
+    err.status = res.status
+    err.payload = data
+    throw err
+  }
+
+  return data
+}
+
+function mapFromApi(item = {}) {
+  // Contrato sugerido provisional
+  const idProducto = item.idProducto ?? item.id_producto ?? item.id
+  const nombre = item.nombre || 'Producto'
+  const sku = item.sku || String(idProducto ?? '')
+  const precio = Number(item.precioBase ?? item.precio_base ?? item.precio ?? 0)
+  const stock = Number(item.stockActual ?? item.stock_actual ?? item.stock ?? 0)
+  // Mantener IDs string compatibles con UI actual
+  const id = idProducto != null ? `prd-${idProducto}` : String(item.id || '')
+  return { id, nombre, sku, precio, stock }
+}
 
 function cloneSeed() {
   return productosSeed.map((producto) => ({ ...producto }))
@@ -40,6 +92,19 @@ function ensureProductos() {
   const seed = cloneSeed()
   persist(seed)
   return seed
+}
+
+async function fetchProductosRemote() {
+  const url = new URL(BASE_URL)
+  const data = await request(url.toString(), { method: 'GET' })
+  const items = Array.isArray(data) ? data : data?.items || []
+  return items.map(mapFromApi)
+}
+
+async function fetchProductoByIdRemote(id) {
+  if (!id) return null
+  const data = await request(`${BASE_URL}/${encodeURIComponent(id)}`, { method: 'GET' })
+  return mapFromApi(data)
 }
 
 function emitirProductoActualizado(producto) {
@@ -87,14 +152,51 @@ function generarId() {
 }
 
 export async function obtenerProductos() {
+  // Intentar remoto primero; si no existe, usar mock
+  try {
+    const lista = await fetchProductosRemote()
+    // Refrescar caché local para futuras consultas por id
+    if (Array.isArray(lista) && lista.length) {
+      persist(lista)
+      return lista
+    }
+  } catch (error) {
+    if (error?.message !== 'NOT_IMPLEMENTED') {
+      // Otros errores: continuar con fallback silenciosamente
+      void error
+    }
+  }
   return ensureProductos()
 }
 
 export async function obtenerProductoPorId(id) {
   if (!id) return null
+  // Aceptar 'prd-123' o '123'
+  const raw = String(id)
+  const match = raw.match(/\d+$/)
+  const numericId = match ? match[0] : ''
+
+  // Intentar resolver local
   const productos = ensureProductos()
-  const producto = productos.find((item) => item.id === id)
-  return cloneProducto(producto)
+  const local = productos.find((item) => item.id === id || (numericId && item.id === `prd-${numericId}`))
+  if (local) return cloneProducto(local)
+
+  // Intentar remoto si API disponible
+  try {
+    if (numericId) {
+      const remoto = await fetchProductoByIdRemote(numericId)
+      if (remoto) {
+        const actualizados = [...productos, remoto]
+        persist(actualizados)
+        return cloneProducto(remoto)
+      }
+    }
+  } catch (error) {
+    // Silenciar si no implementado u otros; fallback a null
+    void error
+  }
+
+  return null
 }
 
 export async function crearProducto(payload) {

@@ -5,20 +5,20 @@ import RegisterPage from '../views/RegisterPage.vue'
 import { useSession } from '../composables/useSession'
 
 // Productos
-import ProductosListPage from '../views/productos/ProductosListPage.vue'
-import ProductosCreatePage from '../views/productos/ProductosCreatePage.vue'
+import ProductosListPage from '@/views/productos/ProductosListPage.vue'
+import ProductosCreatePage from '@/views/productos/ProductosCreatePage.vue'
 
-// Terceros
-import TercerosCreatePage from '../views/terceros/TercerosCreatePage.vue'
-import TercerosListPage from '../views/terceros/TercerosListPage.vue'
-import TercerosEditPage from '../views/terceros/TercerosEditPage.vue'
-//Compras
-import ComprasListPage from '../views/compras/ComprasListPage.vue'
-import ComprasCreatePage from '../views/compras/ComprasCreatePage.vue'
+// Terceros (lazy-loaded)
+const TercerosCreatePage = () => import('@/views/terceros/TercerosCreatePage.vue')
+const TercerosListPage = () => import('@/views/terceros/TercerosListPage.vue')
+const TercerosEditPage = () => import('@/views/terceros/TercerosEditPage.vue')
+// Compras (lazy-loaded)
+const ComprasListPage = () => import('@/views/compras/ComprasListPage.vue')
+const ComprasCreatePage = () => import('@/views/compras/ComprasCreatePage.vue')
 
-// Ventas
-import VentasListPage from '../views/ventas/VentasListPage.vue'
-import VentasCreatePage from '../views/ventas/VentasCreatePage.vue'
+// Ventas (lazy-loaded)
+const VentasListPage = () => import('@/views/ventas/VentasListPage.vue')
+const VentasCreatePage = () => import('@/views/ventas/VentasCreatePage.vue')
 /* import VentasEditPage from '../views/ventas/VentasEditPage.vue'
  */
 const routes = [

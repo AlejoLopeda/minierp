@@ -15,14 +15,14 @@
     <form class="compra-form__form" @submit.prevent="handleSubmit">
       <div class="compra-form__grid">
         <label class="compra-form__field compra-form__field--full">
-          <span class="compra-form__label">Cliente</span>
+          <span class="compra-form__label">Proveedor</span>
           <select v-model="clienteId" class="compra-form__input" :disabled="isGuardando">
-            <option value="">Selecciona un cliente</option>
+            <option value="">Selecciona un proveedor</option>
             <option v-for="cliente in clientesOrdenados" :key="cliente.id" :value="cliente.id">
-              {{ cliente.nombreRazonSocial || cliente.nombre || 'Cliente sin nombre' }}
+              {{ cliente.nombreRazonSocial || cliente.nombre || 'Proveedor sin nombre' }}
             </option>
           </select>
-          <small v-if="clientesCargando" class="compra-form__hint">Cargando clientes...</small>
+          <small v-if="clientesCargando" class="compra-form__hint">Cargando proveedores...</small>
           <small
             v-else-if="clientesOrdenados.length === 0"
             class="compra-form__hint compra-form__hint--warning"
@@ -226,16 +226,17 @@ export default {
     const lineas = ref([crearLinea()])
     const formError = ref('')
 
-    const currencyFormatter = new Intl.NumberFormat('es-PE', {
+    const currencyFormatter = new Intl.NumberFormat('es-CO', {
       style: 'currency',
-      currency: 'PEN',
+      currency: 'COP',
       minimumFractionDigits: 2,
     })
 
     const productosDisponibles = computed(() => productos.value || [])
 
     const clientesOrdenados = computed(() => {
-      return [...clientes.value].sort((a, b) => {
+      const proveedores = (clientes.value || []).filter((t) => t?.tipoTercero === 'Proveedor')
+      return proveedores.sort((a, b) => {
         const nombreA = (a?.nombreRazonSocial || a?.nombre || '').toLowerCase()
         const nombreB = (b?.nombreRazonSocial || b?.nombre || '').toLowerCase()
         return nombreA.localeCompare(nombreB)
@@ -319,13 +320,13 @@ export default {
       limpiarErrorCompras()
 
       if (!esValido.value) {
-        formError.value = 'Revisa que el cliente y los productos tengan datos válidos.'
+        formError.value = 'Revisa que el proveedor y los productos tengan datos válidos.'
         return
       }
 
       const cliente = clientesOrdenados.value.find((item) => item.id === clienteId.value)
       if (!cliente) {
-        formError.value = 'El cliente seleccionado ya no está disponible.'
+        formError.value = 'El proveedor seleccionado ya no está disponible.'
         return
       }
 
