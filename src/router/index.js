@@ -21,6 +21,8 @@ const VentasListPage = () => import('@/views/ventas/VentasListPage.vue')
 const VentasCreatePage = () => import('@/views/ventas/VentasCreatePage.vue')
 /* import VentasEditPage from '../views/ventas/VentasEditPage.vue'
  */
+// Reportes (lazy-loaded)
+const ReportesPage = () => import('@/views/reportes/ReportesPage.vue')
 const routes = [
   { path: '/', name: 'Home', component: HomePage, meta: { requiresAuth: true } },
   { path: '/inicio-sesion', name: 'Inicio-sesion', component: LoginPage, meta: { noLayout: true } },
@@ -42,6 +44,9 @@ const routes = [
  */   // compras
   { path: '/compras', name: 'ComprasList', component: ComprasListPage, meta: { requiresAuth: true } },
   { path: '/compras/nueva', name: 'ComprasCrear', component: ComprasCreatePage, meta: { requiresAuth: true } },
+
+  // Reportes
+  { path: '/reportes', name: 'Reportes', component: ReportesPage, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

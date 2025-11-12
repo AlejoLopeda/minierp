@@ -54,6 +54,7 @@ export default {
       { key: 'producto', title: 'Crear Producto', desc: 'Catálogo con inventario y costos', icon: '📦', routeName: 'ProductosCrear', accent: '#0ea5e9', image: '/media/qa-productos.jpg', alt: 'Almacén con productos' },
       { key: 'venta', title: 'Nueva Venta', desc: 'Factura en segundos', icon: '🧾', routeName: 'VentasCrear', accent: '#22c55e' },
       { key: 'compra', title: 'Nueva Compra', desc: 'Recibe y valoriza', icon: '🛒', routeName: 'ComprasCrear', accent: '#f59e0b' },
+      { key: 'reportes', title: 'Ver Reportes', desc: 'KPIs y descargas filtradas', icon: '📊', routeName: 'Reportes', accent: '#3b82f6' },
     ]
     // Sustituir por configuración con imágenes (evita issues de encoding)
     try {
@@ -62,6 +63,7 @@ export default {
         { key: 'producto', title: 'Crear Producto', desc: 'Catalogo con inventario y costos', icon: '\uD83D\uDCE6', routeName: 'ProductosCrear', accent: '#0ea5e9', image: imgProductos, alt: 'Almacen con productos' },
         { key: 'venta', title: 'Nueva Venta', desc: 'Factura en segundos', icon: '\uD83D\uDCC4', routeName: 'VentasCrear', accent: '#22c55e', image: imgVentas, alt: 'Carrito de compras y paquetes' },
         { key: 'compra', title: 'Nueva Compra', desc: 'Recibe y valoriza', icon: '\uD83D\uDED2', routeName: 'ComprasCrear', accent: '#f59e0b', image: imgCompras, alt: 'Montacargas con cajas y carrito' },
+        { key: 'reportes', title: 'Ver Reportes', desc: 'KPIs y descargas filtradas', icon: '\uD83D\uDCCA', routeName: 'Reportes', accent: '#3b82f6' },
       )
     } catch (_) { /* no-op */ }
 
