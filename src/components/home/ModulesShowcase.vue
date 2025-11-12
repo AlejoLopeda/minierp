@@ -34,7 +34,7 @@ export default {
       { key: 'compras', title: 'Compras', desc: 'Ordena, recibe, valoriza y concilia.', icon: '🛒', cta: 'Abrir Compras', routeName: 'ComprasList' },
       { key: 'terceros', title: 'Terceros', desc: 'CRM ligero para clientes y proveedores.', icon: '👤', cta: 'Ver Terceros', routeName: 'TercerosList' },
       { key: 'productos', title: 'Productos', desc: 'Catálogo con SKUs, costos e inventarios.', icon: '📦', cta: 'Ver Productos', routeName: 'ProductosList' },
-      { key: 'reportes', title: 'Reportes', desc: 'Indicadores accionables para decidir.', icon: '📊', cta: 'Próximamente', routeName: '' },
+      { key: 'reportes', title: 'Reportes', desc: 'Indicadores accionables para decidir.', icon: '📊', cta: 'Abrir Reportes', routeName: 'Reportes' },
     ]
     const tilt = (e) => {
       const el = e.currentTarget
