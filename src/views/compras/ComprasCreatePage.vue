@@ -31,6 +31,18 @@
           </small>
         </label>
 
+        <label class="compra-form__field compra-form__field--compact">
+          <span class="compra-form__label">Fecha</span>
+          <input
+            v-model="fecha"
+            type="date"
+            class="compra-form__input"
+            :max="maxFecha"
+            :disabled="isGuardando"
+            required
+          >
+        </label>
+
         <label class="compra-form__field compra-form__field--full">
           <span class="compra-form__label">Notas (opcional)</span>
           <textarea
@@ -198,6 +210,14 @@ function crearLinea() {
   })
 }
 
+const obtenerFechaHoy = () => new Date().toISOString().slice(0, 10)
+function normalizarFechaInput(value) {
+  if (!value) return null
+  const fecha = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(fecha.getTime())) return null
+  return fecha.toISOString()
+}
+
 export default {
   name: 'ComprasCreatePage',
   setup() {
@@ -222,6 +242,7 @@ export default {
     } = useProductos()
 
     const clienteId = ref('')
+    const fecha = ref(obtenerFechaHoy())
     const notas = ref('')
     const lineas = ref([crearLinea()])
     const formError = ref('')
@@ -269,6 +290,7 @@ export default {
 
     const esValido = computed(() => {
       if (!clienteId.value) return false
+      if (!normalizarFechaInput(fecha.value)) return false
       if (lineas.value.length === 0) return false
 
       const lineasValidas = lineas.value.every((linea) => {
@@ -309,6 +331,7 @@ export default {
 
     const resetFormulario = () => {
       clienteId.value = ''
+      fecha.value = obtenerFechaHoy()
       notas.value = ''
       lineaCounter = 0
       lineas.value = [crearLinea()]
@@ -330,11 +353,18 @@ export default {
         return
       }
 
+      const fechaISO = normalizarFechaInput(fecha.value)
+      if (!fechaISO) {
+        formError.value = 'Selecciona una fecha válida.'
+        return
+      }
+
       const payload = {
         clienteId: cliente.id,
         clienteNombre: cliente.nombreRazonSocial || cliente.nombre || '',
         clienteDocumento: cliente.numeroDocumento || cliente.numero_documento || '',
         notas: notas.value,
+        fecha: fechaISO,
         items: lineas.value.map((linea) => ({
           productoId: linea.productoId,
           cantidad: Number.parseInt(linea.cantidad, 10),
@@ -379,9 +409,11 @@ export default {
     const clientesError = computed(() => clientesErrorRef.value)
     const productosError = computed(() => productosErrorRef.value)
     const comprasError = computed(() => comprasErrorRef.value)
+    const maxFecha = computed(() => obtenerFechaHoy())
 
     return {
       clienteId,
+      fecha,
       notas,
       lineas,
       agregarLinea,
@@ -403,6 +435,7 @@ export default {
       clientesError,
       productosError,
       comprasError,
+      maxFecha,
       formError,
     }
   },

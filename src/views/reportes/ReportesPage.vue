@@ -19,39 +19,79 @@
       <div class="reportes__dates">
         <label class="field">
           <span class="field__label">Fecha inicial</span>
-          <input class="field__control" type="date" v-model="fechaInicio" />
+          <input class="field__control" type="date" v-model="fechaInicio" :disabled="isLoading" />
         </label>
         <label class="field">
           <span class="field__label">Fecha final</span>
-          <input class="field__control" type="date" v-model="fechaFin" />
+          <input class="field__control" type="date" v-model="fechaFin" :disabled="isLoading" />
         </label>
-        <button type="button" class="btn btn--primary">Aplicar</button>
+        <button type="button" class="btn btn--primary" @click="aplicarRango" :disabled="isLoading">
+          {{ isLoading ? 'Cargando...' : 'Aplicar' }}
+        </button>
       </div>
       <div class="reportes__downloads">
-        <button type="button" class="btn btn--secondary" @click="descargarVentasCSV" :disabled="ventasFiltradas.length===0">CSV Ventas</button>
-        <button type="button" class="btn btn--secondary" @click="descargarComprasCSV" :disabled="comprasFiltradas.length===0">CSV Compras</button>
-        <button type="button" class="btn btn--secondary" @click="descargarResumenCSV">CSV Resumen</button>
+        <button
+          type="button"
+          class="btn btn--secondary"
+          @click="descargarVentasCSV"
+          :disabled="isLoading || detalleVentas.length === 0"
+        >
+          CSV Ventas
+        </button>
+        <button
+          type="button"
+          class="btn btn--secondary"
+          @click="descargarComprasCSV"
+          :disabled="isLoading || detalleCompras.length === 0"
+        >
+          CSV Compras
+        </button>
+        <button
+          type="button"
+          class="btn btn--secondary"
+          @click="descargarResumenCSV"
+          :disabled="isLoading"
+        >
+          CSV Resumen
+        </button>
+        <button type="button" class="btn btn--primary" @click="descargarResumenPDF" :disabled="isLoading">
+          PDF detallado
+        </button>
       </div>
     </section>
+
+    <div v-if="errorMessage" class="reportes__alert">
+      {{ errorMessage }}
+    </div>
 
     <section class="reportes__kpis" v-reveal>
       <KpiCard
         label="Ingresos (ventas)"
         :value="formatCurrency(totalVentasMonto)"
-        :meta="`${ventasFiltradas.length} ventas • Ticket ${formatCurrency(ticketPromedioVentas)}`"
+        :meta="`${totalVentasCantidad} ventas | Ticket ${formatCurrency(ticketPromedioVentas)}`"
         accent="#22c55e"
       />
       <KpiCard
         label="Egresos (compras)"
         :value="formatCurrency(totalComprasMonto)"
-        :meta="`${comprasFiltradas.length} compras • Ticket ${formatCurrency(ticketPromedioCompras)}`"
+        :meta="`${totalComprasCantidad} compras | Ticket ${formatCurrency(ticketPromedioCompras)}`"
         accent="#f59e0b"
       />
       <KpiCard
         label="Resultado neto"
         :value="formatCurrency(neto)"
-        :meta="`Artículos vendidos ${totalItemsVendidos} • comprados ${totalItemsComprados}`"
+        :meta="`Artículos vendidos ${totalItemsVendidos} | comprados ${totalItemsComprados}`"
         accent="#0d6efd"
+      />
+      <KpiCard
+        label="Top producto vendido"
+        :value="topVentaPrincipal ? (topVentaPrincipal.nombreOriginal || topVentaPrincipal.nombre) : 'Sin datos'"
+        :meta="
+          topVentaPrincipal
+            ? `${topVentaPrincipal.referencia || topVentaPrincipal.sku || 'SKU sin referencia'} | ${topVentaPrincipal.cantidad} uds`
+            : 'No se registran ventas en este rango'
+        "
+        accent="#7c3aed"
       />
     </section>
 
@@ -79,21 +119,55 @@
       />
     </section>
 
+    <section class="reportes__table" v-if="serieVentas.length || serieCompras.length" v-reveal>
+      <h3 class="reportes__table-title">Movimientos por día</h3>
+      <div class="reportes__grid">
+        <table class="tbl">
+          <thead>
+            <tr><th>Fecha</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in serieVentas" :key="`v-${item.fecha}`">
+              <td>{{ item.fecha }}</td>
+              <td class="tbl__num">{{ formatCurrency(item.total) }}</td>
+            </tr>
+            <tr v-if="serieVentas.length === 0">
+              <td colspan="2" class="tbl__muted">Sin datos</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="tbl">
+          <thead>
+            <tr><th>Fecha</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in serieCompras" :key="`c-${item.fecha}`">
+              <td>{{ item.fecha }}</td>
+              <td class="tbl__num">{{ formatCurrency(item.total) }}</td>
+            </tr>
+            <tr v-if="serieCompras.length === 0">
+              <td colspan="2" class="tbl__muted">Sin datos</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="reportes__tops" v-reveal>
       <TopsList title="Top productos vendidos" :items="topVendidos" />
       <TopsList title="Top productos comprados" :items="topComprados" />
     </section>
 
-    <section class="reportes__table" v-if="ventasFiltradas.length || comprasFiltradas.length" v-reveal>
+    <section class="reportes__table" v-if="detalleVentas.length || detalleCompras.length" v-reveal>
       <h3 class="reportes__table-title">Detalle rápido</h3>
       <div class="reportes__grid">
         <ReportTable
           title="Ventas"
-          :rows="ventasFiltradas.map(v => ({ id: v.id, fecha: formatDate(v.fecha), nombre: v.cliente?.nombre || 'Cliente', items: describirProductos(v.items), total: formatCurrency(v.total) }))"
+          :rows="detalleVentas.map(v => ({ id: v.id, fecha: formatDate(v.fecha), nombre: v.nombre || 'Cliente', items: formatItemsLinea(v.items), total: formatCurrency(v.total) }))"
         />
         <ReportTable
           title="Compras"
-          :rows="comprasFiltradas.map(c => ({ id: c.id, fecha: formatDate(c.fecha), nombre: c.cliente?.nombre || 'Proveedor', items: describirProductos(c.items), total: formatCurrency(c.total) }))"
+          :rows="detalleCompras.map(c => ({ id: c.id, fecha: formatDate(c.fecha), nombre: c.nombre || 'Proveedor', items: formatItemsLinea(c.items), total: formatCurrency(c.total) }))"
         />
       </div>
     </section>
@@ -113,11 +187,10 @@ export default {
   components: { KpiCard, BarsChartCard, TopsList, ReportTable },
   setup() {
     const r = useReportes()
-    onMounted(() => r.cargar())
+    onMounted(() => r.cargarResumen())
     return r
   },
 }
 </script>
 
 <style src="../../theme/ReportesStyles.css"></style>
-

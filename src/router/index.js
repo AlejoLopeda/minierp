@@ -7,6 +7,7 @@ import { useSession } from '../composables/useSession'
 // Productos
 import ProductosListPage from '@/views/productos/ProductosListPage.vue'
 import ProductosCreatePage from '@/views/productos/ProductosCreatePage.vue'
+const ProductosEditPage = () => import('@/views/productos/ProductosEditPage.vue')
 
 // Terceros (lazy-loaded)
 const TercerosCreatePage = () => import('@/views/terceros/TercerosCreatePage.vue')
@@ -31,6 +32,7 @@ const routes = [
   // Productos
   { path: '/productos', name: 'ProductosList', component: ProductosListPage, meta: { requiresAuth: true } },
   { path: '/productos/nuevo', name: 'ProductosCrear', component: ProductosCreatePage, meta: { requiresAuth: true } },
+  { path: '/productos/editar/:idProducto', name: 'ProductosEditar', component: ProductosEditPage, props: true, meta: { requiresAuth: true } },
 
   // Terceros
   { path: '/terceros', name: 'TercerosList', component: TercerosListPage, meta: { requiresAuth: true } },
