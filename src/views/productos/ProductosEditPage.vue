@@ -2,17 +2,19 @@
   <section class="producto-form">
     <header class="producto-form__header">
       <div>
-        <h1 class="producto-form__title">Nuevo producto</h1>
+        <h1 class="producto-form__title">Editar producto</h1>
         <p class="producto-form__subtitle">
-          Registra un producto para disponerlo en tu catálogo interno.
+          Actualiza la información del producto para mantener tu catálogo sincronizado.
         </p>
       </div>
-      <button type="button" class="producto-form__secondary-button" @click="volverAlListado">
+      <RouterLink class="producto-form__secondary-button" :to="{ name: 'ProductosList' }">
         Volver al listado
-      </button>
+      </RouterLink>
     </header>
 
-    <form class="producto-form__form" @submit.prevent="handleSubmit">
+    <div v-if="isLoading" class="producto-form__placeholder">Cargando producto...</div>
+
+    <form v-else class="producto-form__form" @submit.prevent="handleSubmit">
       <div class="producto-form__grid">
         <label class="producto-form__field">
           <span class="producto-form__label">Nombre</span>
@@ -30,19 +32,20 @@
             v-model.trim="form.sku"
             type="text"
             placeholder="Ej: MON24-FHD"
-            required
             maxlength="20"
+            required
           >
         </label>
 
         <label class="producto-form__field">
-          <span class="producto-form__label">Categoria</span>
+          <span class="producto-form__label">Categoría</span>
           <select v-model="form.categoria" required>
-            <option disabled value="">Selecciona una categoria</option>
-            <option value="Hardware">Hardware</option>
-            <option value="Software">Software</option>
-            <option value="Servicios">Servicios</option>
-            <option value="Accesorios">Accesorios</option>
+            <option disabled value="">Selecciona una categoría</option>
+            <option
+              v-for="cat in categorias"
+              :key="cat"
+              :value="cat"
+            >{{ cat }}</option>
           </select>
         </label>
 
@@ -71,21 +74,20 @@
         </label>
       </div>
 
-      <div v-if="successMessage" class="producto-form__alert producto-form__alert--success">
-        {{ successMessage }}
-      </div>
-
-      <div v-if="errorMessage" class="producto-form__alert">
-        {{ errorMessage }}
+      <div v-if="formError" class="producto-form__alert">
+        {{ formError }}
       </div>
 
       <div class="producto-form__actions">
+        <RouterLink class="producto-form__secondary-button" :to="{ name: 'ProductosList' }">
+          Cancelar
+        </RouterLink>
         <button
           type="submit"
           class="producto-form__primary-button"
           :disabled="isSaving || !esValido"
         >
-          {{ isSaving ? 'Guardando...' : 'Crear producto' }}
+          {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
     </form>
@@ -93,16 +95,18 @@
 </template>
 
 <script>
-import { computed, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useProductos } from '@/composables/useProductos'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { obtenerProducto, actualizarProducto } from '@/services/productoService'
+
+const CATEGORIAS = ['Hardware', 'Software', 'Servicios', 'Accesorios']
 
 export default {
-  name: 'ProductosCreatePage',
+  name: 'ProductosEditPage',
   setup() {
+    const route = useRoute()
     const router = useRouter()
-    const { registrarProducto, isSaving, errorMessage, limpiarError } = useProductos()
-    const successMessage = ref('')
+    const idProducto = route.params.idProducto
 
     const form = reactive({
       nombre: '',
@@ -112,62 +116,89 @@ export default {
       stock: null,
     })
 
+    const categorias = ref([...CATEGORIAS])
+    const isLoading = ref(true)
+    const isSaving = ref(false)
+    const formError = ref('')
+
     const esValido = computed(() => {
       const nombreValido = typeof form.nombre === 'string' && form.nombre.trim().length > 0
       const skuValido = typeof form.sku === 'string' && form.sku.trim().length > 0
       const categoriaValida = typeof form.categoria === 'string' && form.categoria.trim().length > 0
       const precioValido = typeof form.precio === 'number' && !Number.isNaN(form.precio) && form.precio >= 0
       const stockValido = Number.isInteger(form.stock) && form.stock >= 0
-
       return nombreValido && skuValido && categoriaValida && precioValido && stockValido
     })
 
-    const handleSubmit = async () => {
-      if (!esValido.value) return
-
+    const cargarProducto = async () => {
+      isLoading.value = true
+      formError.value = ''
       try {
-        await registrarProducto({
+        const producto = await obtenerProducto(idProducto)
+        form.nombre = producto?.nombre || ''
+        form.sku = producto?.sku || ''
+        form.categoria = producto?.categoria || ''
+        if (form.categoria && !categorias.value.includes(form.categoria)) {
+          categorias.value = [...categorias.value, form.categoria]
+        }
+        form.precio = Number(producto?.precio ?? 0)
+        form.stock = Number(producto?.stock ?? 0)
+      } catch (error) {
+        formError.value = error.message || 'No fue posible cargar el producto'
+      } finally {
+        isLoading.value = false
+      }
+    }
+
+    onMounted(() => {
+      if (!idProducto) {
+        formError.value = 'El identificador del producto es requerido'
+        isLoading.value = false
+        return
+      }
+      void cargarProducto()
+    })
+
+    const handleSubmit = async () => {
+      if (!esValido.value || !idProducto) {
+        formError.value = 'Revisa los campos obligatorios antes de continuar.'
+        return
+      }
+      formError.value = ''
+      isSaving.value = true
+      try {
+        await actualizarProducto(idProducto, {
           nombre: form.nombre,
           sku: form.sku,
           categoria: form.categoria,
           precio: form.precio,
           stock: form.stock,
         })
-        successMessage.value = 'Producto creado correctamente.'
-        form.nombre = ''
-        form.sku = ''
-        form.categoria = ''
-        form.precio = null
-        form.stock = null
+        router.push({ name: 'ProductosList' })
       } catch (error) {
-        // el mensaje ya se gestiona en el composable
+        formError.value = error.message || 'No fue posible actualizar el producto'
+      } finally {
+        isSaving.value = false
       }
-    }
-
-    const volverAlListado = () => {
-      router.push({ name: 'ProductosList' })
     }
 
     watch(
       () => [form.nombre, form.sku, form.categoria, form.precio, form.stock],
       () => {
-        if (errorMessage.value) {
-          limpiarError()
-        }
-        if (successMessage.value) {
-          successMessage.value = ''
+        if (formError.value) {
+          formError.value = ''
         }
       }
     )
 
     return {
       form,
-      esValido,
+      categorias,
+      isLoading,
       isSaving,
-      errorMessage,
-      successMessage,
+      formError,
+      esValido,
       handleSubmit,
-      volverAlListado,
     }
   },
 }
@@ -202,6 +233,32 @@ export default {
   margin: 0.35rem 0 0;
   color: #5f6368;
   font-size: 0.95rem;
+}
+
+.producto-form__secondary-button {
+  background-color: #f1f3f4;
+  color: #1b1b1f;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.producto-form__secondary-button:hover {
+  background-color: #e2e5e8;
+}
+
+.producto-form__placeholder {
+  display: grid;
+  place-items: center;
+  height: 160px;
+  border: 1px dashed #c7cacf;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #5f6368;
 }
 
 .producto-form__form {
@@ -245,14 +302,6 @@ export default {
   box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12);
 }
 
-.producto-form__field select {
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #5f6368 50%), linear-gradient(135deg, #5f6368 50%, transparent 50%);
-  background-position: calc(100% - 25px) calc(1.1em + 2px), calc(100% - 19px) calc(1.1em + 2px);
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-}
-
 .producto-form__alert {
   padding: 1rem;
   border-radius: 12px;
@@ -262,19 +311,14 @@ export default {
   font-size: 0.9rem;
 }
 
-.producto-form__alert--success {
-  background-color: rgba(11, 127, 61, 0.08);
-  color: #0b7f3d;
-  border-color: rgba(11, 127, 61, 0.25);
-}
-
 .producto-form__actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.producto-form__primary-button,
-.producto-form__secondary-button {
+.producto-form__primary-button {
   border-radius: 999px;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -282,32 +326,20 @@ export default {
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-
-.producto-form__primary-button {
   background: linear-gradient(135deg, #38b6ff, #004aad);
   color: #fff;
   box-shadow: 0 12px 20px rgba(56, 182, 255, 0.25);
 }
 
-.producto-form__primary-button:hover:enabled {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 22px rgba(56, 182, 255, 0.35);
-}
-
 .producto-form__primary-button:disabled {
-  cursor: not-allowed;
   opacity: 0.6;
+  cursor: not-allowed;
   box-shadow: none;
 }
 
-.producto-form__secondary-button {
-  background-color: #f1f3f4;
-  color: #1b1b1f;
-}
-
-.producto-form__secondary-button:hover {
-  background-color: #e2e5e8;
+.producto-form__primary-button:hover:enabled {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 22px rgba(56, 182, 255, 0.35);
 }
 
 @media (max-width: 768px) {
@@ -328,8 +360,10 @@ export default {
     justify-content: stretch;
   }
 
-  .producto-form__primary-button {
+  .producto-form__primary-button,
+  .producto-form__secondary-button {
     width: 100%;
+    justify-content: center;
   }
 }
 </style>

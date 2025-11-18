@@ -1,21 +1,58 @@
 import { computed, ref } from 'vue'
-import { useVentas } from '@/composables/useVentas'
-import { useCompras } from '@/composables/useCompras'
+import { obtenerResumen } from '@/services/reporteService'
 import { descargarCSV as descargarCsvService } from '@/services/reportesService'
+import { generarReportePDF } from '@/services/reportePdfService'
+import { useProductos } from '@/composables/useProductos'
+
+const hoyISO = () => new Date().toISOString().slice(0, 10)
+const addDays = (date, delta) => {
+  const x = new Date(date)
+  x.setDate(x.getDate() + delta)
+  return x
+}
+
+function crearResumenVacio(desde, hasta) {
+  return {
+    rango: { desde, hasta },
+    ingresos: { total: 0, cantidad: 0, ticketPromedio: 0 },
+    egresos: { total: 0, cantidad: 0, ticketPromedio: 0 },
+    resultadoNeto: 0,
+    ventasPorDia: [],
+    comprasPorDia: [],
+    topProductosVendidos: [],
+    topProductosComprados: [],
+    detalleVentas: [],
+    detalleCompras: [],
+  }
+}
+
+function formatItemsLinea(items = []) {
+  if (!Array.isArray(items) || !items.length) return ''
+  return items
+    .map((it) => `${it.nombreOriginal || it.nombre || 'Producto'} x${Number(it.cantidad || 0)}`)
+    .join(', ')
+}
 
 export function useReportes() {
-  const { ventas, cargarVentas } = useVentas()
-  const { compras, cargarCompras } = useCompras()
-
-  // Rango
-  const hoyISO = () => new Date().toISOString().slice(0, 10)
-  const addDays = (date, delta) => {
-    const x = new Date(date)
-    x.setDate(x.getDate() + delta)
-    return x
-  }
-  const fechaInicio = ref(new Date(addDays(new Date(), -30)).toISOString().slice(0, 10))
   const fechaFin = ref(hoyISO())
+  const fechaInicio = ref(addDays(new Date(), -30).toISOString().slice(0, 10))
+
+  const resumen = ref(crearResumenVacio(fechaInicio.value, fechaFin.value))
+  const isLoading = ref(false)
+  const errorMessage = ref('')
+  const { productos, cargarProductos } = useProductos()
+  let catalogoSincronizado = false
+
+  const ensureCatalogo = async () => {
+    if (catalogoSincronizado) return
+    try {
+      await cargarProductos({ force: false })
+    } catch (error) {
+      void error
+    } finally {
+      catalogoSincronizado = true
+    }
+  }
 
   const presetRango = (preset) => {
     const hoy = new Date()
@@ -36,132 +73,223 @@ export function useReportes() {
     }
   }
 
-  const inRange = (iso) => {
-    if (!iso) return false
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return false
-    const start = new Date(`${fechaInicio.value}T00:00:00`)
-    const end = new Date(`${fechaFin.value}T23:59:59`)
-    return d >= start && d <= end
-  }
-
-  const ventasFiltradas = computed(() => (ventas.value || []).filter(v => inRange(v.fecha)))
-  const comprasFiltradas = computed(() => (compras.value || []).filter(c => inRange(c.fecha)))
-
-  // KPI
-  const totalVentasMonto = computed(() => ventasFiltradas.value.reduce((s, v) => s + Number(v.total || 0), 0))
-  const totalComprasMonto = computed(() => comprasFiltradas.value.reduce((s, c) => s + Number(c.total || 0), 0))
-  const neto = computed(() => Number((totalVentasMonto.value - totalComprasMonto.value).toFixed(2)))
-  const totalItemsVendidos = computed(() => ventasFiltradas.value.reduce((s, v) => s + (Array.isArray(v.items) ? v.items.reduce((a, i) => a + Number(i.cantidad || 0), 0) : 0), 0))
-  const totalItemsComprados = computed(() => comprasFiltradas.value.reduce((s, c) => s + (Array.isArray(c.items) ? c.items.reduce((a, i) => a + Number(i.cantidad || 0), 0) : 0), 0))
-  const ticketPromedioVentas = computed(() => ventasFiltradas.value.length ? totalVentasMonto.value / ventasFiltradas.value.length : 0)
-  const ticketPromedioCompras = computed(() => comprasFiltradas.value.length ? totalComprasMonto.value / comprasFiltradas.value.length : 0)
-
-  // Series
-  const agruparPorDia = (items) => {
-    const map = new Map()
-    for (const it of items) {
-      const d = new Date(it.fecha)
-      if (Number.isNaN(d.getTime())) continue
-      const key = d.toISOString().slice(0, 10)
-      const acc = map.get(key) || 0
-      map.set(key, acc + Number(it.total || 0))
+  const resumenActual = computed(() => {
+    if (
+      resumen.value &&
+      resumen.value.rango?.desde === fechaInicio.value &&
+      resumen.value.rango?.hasta === fechaFin.value
+    ) {
+      return resumen.value
     }
-    const arr = Array.from(map.entries()).map(([fecha, total]) => ({ fecha, total }))
-    return arr.sort((a, b) => a.fecha.localeCompare(b.fecha))
-  }
-  const serieVentas = computed(() => agruparPorDia(ventasFiltradas.value))
-  const serieCompras = computed(() => agruparPorDia(comprasFiltradas.value))
+    return crearResumenVacio(fechaInicio.value, fechaFin.value)
+  })
+
+  const totalVentasMonto = computed(() => resumenActual.value.ingresos.total)
+  const totalComprasMonto = computed(() => resumenActual.value.egresos.total)
+  const neto = computed(() => resumenActual.value.resultadoNeto)
+  const totalVentasCantidad = computed(() => resumenActual.value.ingresos.cantidad)
+  const totalComprasCantidad = computed(() => resumenActual.value.egresos.cantidad)
+  const ticketPromedioVentas = computed(() =>
+    totalVentasCantidad.value ? totalVentasMonto.value / totalVentasCantidad.value : 0
+  )
+  const ticketPromedioCompras = computed(() =>
+    totalComprasCantidad.value ? totalComprasMonto.value / totalComprasCantidad.value : 0
+  )
+
+  const serieVentas = computed(() => resumenActual.value.ventasPorDia)
+  const serieCompras = computed(() => resumenActual.value.comprasPorDia)
   const maxTotalDiario = computed(() => {
-    const all = [...serieVentas.value.map(x => x.total), ...serieCompras.value.map(x => x.total)]
+    const all = [
+      ...serieVentas.value.map((x) => x.total),
+      ...serieCompras.value.map((x) => x.total),
+    ]
     return all.length ? Math.max(...all) : 1
   })
 
-  // Tops
-  const topFrom = (items) => {
-    const acc = new Map()
-    for (const d of items) {
-      for (const it of (d.items || [])) {
-        const key = it.productoId || it.sku || it.nombre
-        const cur = acc.get(key) || { productoId: key, nombre: it.nombre || String(key), cantidad: 0 }
-        cur.cantidad += Number(it.cantidad || 0)
-        acc.set(key, cur)
-      }
-    }
-    return Array.from(acc.values()).sort((a, b) => b.cantidad - a.cantidad).slice(0, 10)
-  }
-  const topVendidos = computed(() => topFrom(ventasFiltradas.value))
-  const topComprados = computed(() => topFrom(comprasFiltradas.value))
+  const topVendidos = computed(() => resumenActual.value.topProductosVendidos)
+  const topComprados = computed(() => resumenActual.value.topProductosComprados)
+  const totalItemsVendidos = computed(() =>
+    topVendidos.value.reduce((acc, item) => acc + Number(item.cantidad || 0), 0)
+  )
+  const totalItemsComprados = computed(() =>
+    topComprados.value.reduce((acc, item) => acc + Number(item.cantidad || 0), 0)
+  )
+  const topVentaPrincipal = computed(() => topVendidos.value[0] || null)
+  const topCompraPrincipal = computed(() => topComprados.value[0] || null)
+  const detalleVentas = computed(() => resumenActual.value.detalleVentas)
+  const detalleCompras = computed(() => resumenActual.value.detalleCompras)
 
-  // Formatters
-  const currencyFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 })
+  const currencyFormatter = new Intl.NumberFormat('es-PE', {
+    style: 'currency',
+    currency: 'PEN',
+    minimumFractionDigits: 2,
+  })
   const dateFormatter = new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium' })
   const formatCurrency = (v) => currencyFormatter.format(Number.isFinite(Number(v)) ? Number(v) : 0)
-  const formatDate = (v) => { const d = v ? new Date(v) : null; return (d && !Number.isNaN(d.getTime())) ? dateFormatter.format(d) : '–' }
-  const describirProductos = (items = []) => Array.isArray(items) ? items.map(i => `${i.nombre} x${i.cantidad}`).join(', ') : ''
+  const formatDate = (v) => {
+    const d = v ? new Date(v) : null
+    if (!d || Number.isNaN(d.getTime())) return '—'
+    return dateFormatter.format(d)
+  }
   const calcAltura = (valor, max) => {
     const v = Number(valor)
     const m = Number(max || 1)
     const pct = m > 0 ? Math.max(2, Math.round((v / m) * 100)) : 2
-    return pct + '%'
+    return `${pct}%`
   }
 
-  // CSV exports
   const descargarVentasCSV = () => {
+    if (!detalleVentas.value.length) return
     const header = ['Fecha', 'Cliente', 'Items', 'Total']
-    const rows = ventasFiltradas.value.map(v => [
-      formatDate(v.fecha),
-      v.cliente?.nombre || '',
-      describirProductos(v.items || []),
-      String(Number(v.total || 0).toFixed(2))
+    const rows = detalleVentas.value.map((venta) => [
+      formatDate(venta.fecha),
+      venta.nombre || 'Cliente',
+      formatItemsLinea(venta.items),
+      String(Number(venta.total || 0).toFixed(2)),
     ])
     descargarCsvService(`ventas_${fechaInicio.value}_a_${fechaFin.value}.csv`, [header, ...rows])
   }
+
   const descargarComprasCSV = () => {
+    if (!detalleCompras.value.length) return
     const header = ['Fecha', 'Proveedor', 'Items', 'Total']
-    const rows = comprasFiltradas.value.map(c => [
-      formatDate(c.fecha),
-      c.cliente?.nombre || '',
-      describirProductos(c.items || []),
-      String(Number(c.total || 0).toFixed(2))
+    const rows = detalleCompras.value.map((compra) => [
+      formatDate(compra.fecha),
+      compra.nombre || 'Proveedor',
+      formatItemsLinea(compra.items),
+      String(Number(compra.total || 0).toFixed(2)),
     ])
     descargarCsvService(`compras_${fechaInicio.value}_a_${fechaFin.value}.csv`, [header, ...rows])
   }
+
   const descargarResumenCSV = () => {
     const filas = [
       ['Periodo', `${fechaInicio.value} a ${fechaFin.value}`],
-      ['Ventas (monto)', Number(totalVentasMonto.value.toFixed(2))],
-      ['Compras (monto)', Number(totalComprasMonto.value.toFixed(2))],
-      ['Resultado neto', Number(neto.value.toFixed(2))],
-      ['Ventas (count)', ventasFiltradas.value.length],
-      ['Compras (count)', comprasFiltradas.value.length],
+      ['Ingresos (monto)', Number(totalVentasMonto.value.toFixed(2))],
+      ['Ingresos (cantidad)', totalVentasCantidad.value],
       ['Ticket promedio ventas', Number(ticketPromedioVentas.value.toFixed(2))],
+      ['Egresos (monto)', Number(totalComprasMonto.value.toFixed(2))],
+      ['Egresos (cantidad)', totalComprasCantidad.value],
       ['Ticket promedio compras', Number(ticketPromedioCompras.value.toFixed(2))],
-      ['Artículos vendidos', totalItemsVendidos.value],
-      ['Artículos comprados', totalItemsComprados.value],
+      ['Resultado neto', Number(neto.value.toFixed(2))],
+      ['Articulos vendidos', totalItemsVendidos.value],
+      ['Articulos comprados', totalItemsComprados.value],
     ]
     descargarCsvService(`resumen_${fechaInicio.value}_a_${fechaFin.value}.csv`, filas)
   }
 
-  const cargar = () => { cargarVentas(); cargarCompras() }
+  const mapearNombreProducto = (item) => {
+    const catalogo = productos.value || []
+    if (!item?.productoId && !item?.sku && !item?.referencia) return item
+    const rawId = String(item.productoId ?? '').trim()
+    const normalizedId = rawId.replace(/^prd-/, '')
+    const skuLower = (item.sku || item.referencia || '').toString().toLowerCase()
+    const match = catalogo.find((producto) => {
+      const candidateId = String(producto.id || '').replace(/^prd-/, '')
+      const isSameId =
+        candidateId === normalizedId ||
+        String(producto.id || '') === rawId ||
+        (!rawId && skuLower && String(producto.sku || '').toLowerCase() === skuLower)
+      if (isSameId) return true
+      if (skuLower && String(producto.sku || '').toLowerCase() === skuLower) return true
+      return false
+    })
+    const apiNombre = item.nombreOriginal || item.nombre
+    if (!match) {
+      return {
+        ...item,
+        nombre: apiNombre || item.nombre,
+        nombreOriginal: apiNombre || item.nombre,
+        referencia: item.referencia || item.sku || null,
+      }
+    }
+    return {
+      ...item,
+      nombre: apiNombre || match.nombre || item.nombre,
+      nombreOriginal: apiNombre || match.nombre || item.nombre,
+      sku: match.sku || item.sku,
+      referencia: item.referencia || match.sku || item.sku || null,
+    }
+  }
+
+  const enriquecerConCatalogo = (data) => {
+    if (!data) return data
+    return {
+      ...data,
+      topProductosVendidos: (data.topProductosVendidos || []).map(mapearNombreProducto),
+      topProductosComprados: (data.topProductosComprados || []).map(mapearNombreProducto),
+    }
+  }
+
+  const cargarResumen = async () => {
+    if (isLoading.value) return
+    isLoading.value = true
+    errorMessage.value = ''
+    try {
+      await ensureCatalogo()
+      const data = await obtenerResumen({ desde: fechaInicio.value, hasta: fechaFin.value })
+      resumen.value = enriquecerConCatalogo(data)
+    } catch (error) {
+      errorMessage.value = error.message || 'No fue posible cargar el resumen'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const aplicarRango = () => {
+    cargarResumen()
+  }
+
+  const descargarResumenPDF = async () => {
+    if (isLoading.value) return
+    try {
+      await generarReportePDF(resumenActual.value)
+    } catch (error) {
+      errorMessage.value = error.message || 'No fue posible generar el PDF'
+    }
+  }
 
   return {
-    // carga
-    cargar,
     // filtros
-    fechaInicio, fechaFin, presetRango,
-    // datos filtrados
-    ventasFiltradas, comprasFiltradas,
-    // kpis
-    totalVentasMonto, totalComprasMonto, neto,
-    totalItemsVendidos, totalItemsComprados,
-    ticketPromedioVentas, ticketPromedioCompras,
-    // series tops
-    serieVentas, serieCompras, maxTotalDiario, topVendidos, topComprados,
-    // util
-    formatCurrency, formatDate, describirProductos, calcAltura,
-    // export
-    descargarVentasCSV, descargarComprasCSV, descargarResumenCSV,
+    fechaInicio,
+    fechaFin,
+    presetRango,
+    aplicarRango,
+    // estado
+    isLoading,
+    errorMessage,
+    // totales y kpis
+    totalVentasMonto,
+    totalComprasMonto,
+    neto,
+    totalVentasCantidad,
+    totalComprasCantidad,
+    ticketPromedioVentas,
+    ticketPromedioCompras,
+    totalItemsVendidos,
+    totalItemsComprados,
+    // series
+    serieVentas,
+    serieCompras,
+    maxTotalDiario,
+    // tops y tablas
+    topVendidos,
+    topComprados,
+    topVentaPrincipal,
+    topCompraPrincipal,
+    detalleVentas,
+    detalleCompras,
+    // helpers
+    formatCurrency,
+    formatDate,
+    calcAltura,
+    formatItemsLinea,
+    // descargas
+    descargarVentasCSV,
+    descargarComprasCSV,
+    descargarResumenCSV,
+    descargarResumenPDF,
+    // carga
+    cargarResumen,
   }
 }
-

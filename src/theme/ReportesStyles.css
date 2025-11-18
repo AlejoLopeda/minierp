@@ -19,7 +19,8 @@
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 .btn:hover { transform: translateY(-1px); }
 
-.reportes__kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1rem; }
+.reportes__alert { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; border-radius: 12px; padding: .75rem 1rem; margin-bottom: 1rem; }
+.reportes__kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1rem; }
 .kpi { background: linear-gradient(180deg, #ffffff, #f9fbff); border: 1px solid #e9eef6; border-radius: 16px; padding: 16px; box-shadow: 0 10px 26px rgba(2,6,23,.06); position: relative; overflow: hidden; }
 .kpi::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.36) 50%, transparent 60%); transform: translateX(-120%) skewX(-12deg); transition: transform .6s ease; }
 .kpi:hover::after { transform: translateX(220%) skewX(-12deg); }

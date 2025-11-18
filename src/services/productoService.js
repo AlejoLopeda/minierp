@@ -44,15 +44,14 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 function mapFromApi(item = {}) {
-  // Contrato sugerido provisional
   const idProducto = item.idProducto ?? item.id_producto ?? item.id
   const nombre = item.nombre || 'Producto'
-  const sku = item.sku || String(idProducto ?? '')
+  const referencia = item.referencia ?? item.sku ?? item.codigo ?? item.codigoProducto ?? item.codigo_producto ?? String(idProducto ?? '')
+  const categoria = item.categoria ?? item.category ?? ''
   const precio = Number(item.precioBase ?? item.precio_base ?? item.precio ?? 0)
-  const stock = Number(item.stockActual ?? item.stock_actual ?? item.stock ?? 0)
-  // Mantener IDs string compatibles con UI actual
+  const stock = Number(item.cantidad ?? item.stockActual ?? item.stock_actual ?? item.stock ?? 0)
   const id = idProducto != null ? `prd-${idProducto}` : String(item.id || '')
-  return { id, nombre, sku, precio, stock }
+  return { id, nombre, sku: String(referencia || ''), precio, stock, categoria }
 }
 
 function cloneSeed() {
@@ -115,11 +114,71 @@ function emitirProductoActualizado(producto) {
   window.dispatchEvent(evento)
 }
 
+function upsertProductoLocal(producto) {
+  if (!producto || typeof producto !== 'object') return
+  const productos = ensureProductos()
+  const index = productos.findIndex((item) => item.id === producto.id || item.sku === producto.sku)
+  const actualizados = [...productos]
+  if (index === -1) {
+    actualizados.push(producto)
+  } else {
+    actualizados[index] = producto
+  }
+  persist(actualizados)
+}
+
+function actualizarProductoLocal(id, data) {
+  const productos = ensureProductos()
+  const index = productos.findIndex(
+    (item) => item.id === id || item.sku === data.sku
+  )
+  const actualizados = [...productos]
+  if (index === -1) {
+    const nuevo = {
+      id: id || generarId(),
+      ...data,
+    }
+    actualizados.push(nuevo)
+    persist(actualizados)
+    emitirProductoActualizado(nuevo)
+    return nuevo
+  }
+  const base = actualizados[index]
+  const actualizado = { ...base, ...data }
+  actualizados[index] = actualizado
+  persist(actualizados)
+  emitirProductoActualizado(actualizado)
+  return actualizado
+}
+
+function extraerIdNumerico(id) {
+  if (id == null) return ''
+  const raw = String(id)
+  const match = raw.match(/\d+$/)
+  return match ? match[0] : raw
+}
+
+function buildApiPayload(data) {
+  return {
+    referencia: data.sku,
+    categoria: data.categoria,
+    precio: data.precio,
+    nombre: data.nombre,
+    cantidad: data.stock,
+  }
+}
+
 function normalizarProducto(payload) {
   const nombre = (payload?.nombre || '').trim()
-  const sku = (payload?.sku || '').trim().toUpperCase()
-  const precio = Number(payload?.precio ?? 0)
-  const stock = Number(payload?.stock ?? 0)
+  const sku = (payload?.sku || payload?.referencia || '').trim().toUpperCase()
+  const categoria = (payload?.categoria || '').trim()
+  const precio = Number.parseFloat(
+    payload?.precio ?? payload?.precioBase ?? payload?.precio_base ?? ''
+  )
+  const stock = Number.parseInt(
+    payload?.stock ?? payload?.cantidad ?? payload?.stockActual ?? payload?.stock_actual ?? 0,
+    10
+  )
 
   if (!nombre) {
     throw new Error('El nombre del producto es obligatorio')
@@ -129,7 +188,11 @@ function normalizarProducto(payload) {
     throw new Error('El SKU del producto es obligatorio')
   }
 
-  if (Number.isNaN(precio) || precio < 0) {
+  if (!categoria) {
+    throw new Error('La categoria del producto es obligatoria')
+  }
+
+  if (!Number.isFinite(precio) || precio < 0) {
     throw new Error('El precio debe ser un numero mayor o igual a cero')
   }
 
@@ -140,9 +203,30 @@ function normalizarProducto(payload) {
   return {
     nombre,
     sku,
-    precio,
+    categoria,
+    precio: Number(precio.toFixed(2)),
     stock,
   }
+}
+
+function crearProductoLocal(data) {
+  const productos = ensureProductos()
+
+  if (productos.some((producto) => producto.sku === data.sku)) {
+    throw new Error('Ya existe un producto con ese SKU')
+  }
+
+  const nuevoProducto = {
+    id: generarId(),
+    ...data,
+  }
+
+  const actualizados = [...productos, nuevoProducto]
+  persist(actualizados)
+
+  emitirProductoActualizado(nuevoProducto)
+
+  return nuevoProducto
 }
 
 function generarId() {
@@ -152,11 +236,9 @@ function generarId() {
 }
 
 export async function obtenerProductos() {
-  // Intentar remoto primero; si no existe, usar mock
   try {
     const lista = await fetchProductosRemote()
-    // Refrescar caché local para futuras consultas por id
-    if (Array.isArray(lista) && lista.length) {
+    if (Array.isArray(lista)) {
       persist(lista)
       return lista
     }
@@ -200,24 +282,24 @@ export async function obtenerProductoPorId(id) {
 }
 
 export async function crearProducto(payload) {
-  const productos = ensureProductos()
   const data = normalizarProducto(payload)
 
-  if (productos.some((producto) => producto.sku === data.sku)) {
-    throw new Error('Ya existe un producto con ese SKU')
+  try {
+    const respuesta = await request(`${BASE_URL}`, {
+      method: 'POST',
+      body: buildApiPayload(data),
+    })
+    const normalizado = mapFromApi(respuesta)
+    upsertProductoLocal(normalizado)
+    emitirProductoActualizado(normalizado)
+    return normalizado
+  } catch (error) {
+    if (error?.message !== 'NOT_IMPLEMENTED' && error?.status !== 404) {
+      throw error
+    }
   }
 
-  const nuevoProducto = {
-    id: generarId(),
-    ...data,
-  }
-
-  const actualizados = [...productos, nuevoProducto]
-  persist(actualizados)
-
-  emitirProductoActualizado(nuevoProducto)
-
-  return nuevoProducto
+  return crearProductoLocal(data)
 }
 
 export async function ajustarStockProducto(id, deltaCantidad) {
@@ -272,3 +354,49 @@ export function onProductoActualizado(callback) {
     window.removeEventListener(PRODUCTO_ACTUALIZADO_EVENT, handler)
   }
 }
+
+export async function obtenerProducto(id) {
+  if (!id) {
+    throw new Error('El ID del producto es obligatorio')
+  }
+  const numericId = extraerIdNumerico(id)
+  try {
+    const remoto = await fetchProductoByIdRemote(numericId || id)
+    if (remoto) {
+      upsertProductoLocal(remoto)
+      return remoto
+    }
+  } catch (error) {
+    if (error?.message !== 'NOT_IMPLEMENTED' && error?.status !== 404) {
+      throw error
+    }
+  }
+  const local = await obtenerProductoPorId(id)
+  if (local) return local
+  throw new Error('Producto no encontrado')
+}
+
+export async function actualizarProducto(id, payload) {
+  if (!id) {
+    throw new Error('El ID del producto es obligatorio')
+  }
+  const data = normalizarProducto(payload)
+  const numericId = extraerIdNumerico(id)
+  try {
+    const respuesta = await request(`${BASE_URL}/${encodeURIComponent(numericId || id)}`, {
+      method: 'PUT',
+      body: buildApiPayload(data),
+    })
+    const normalizado = mapFromApi(respuesta)
+    upsertProductoLocal(normalizado)
+    emitirProductoActualizado(normalizado)
+    return normalizado
+  } catch (error) {
+    if (error?.message !== 'NOT_IMPLEMENTED' && error?.status !== 404) {
+      throw error
+    }
+  }
+  return actualizarProductoLocal(id, data)
+}
+
+

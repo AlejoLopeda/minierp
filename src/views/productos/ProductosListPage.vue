@@ -37,6 +37,7 @@
             <th>SKU</th>
             <th class="productos__column--numeric">Precio</th>
             <th class="productos__column--numeric">Stock</th>
+            <th class="productos__column--actions">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -45,6 +46,14 @@
             <td>{{ producto.sku }}</td>
             <td class="productos__column--numeric">{{ formatCurrency(producto.precio) }}</td>
             <td class="productos__column--numeric">{{ producto.stock }}</td>
+            <td class="productos__column--actions">
+              <RouterLink
+                class="productos__link"
+                :to="{ name: 'ProductosEditar', params: { idProducto: producto.id } }"
+              >
+                Editar
+              </RouterLink>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -221,6 +230,21 @@ export default {
 
 .productos__column--numeric {
   text-align: right;
+}
+
+.productos__column--actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.productos__link {
+  color: #0d6efd;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.productos__link:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
