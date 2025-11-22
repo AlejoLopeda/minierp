@@ -19,7 +19,18 @@ export function useProductos() {
     unsubscribeActualizado = onProductoActualizado((productoActualizado) => {
       if (!productoActualizado?.id) return
       const index = productos.value.findIndex((item) => item.id === productoActualizado.id)
-      if (index === -1) return
+      if (productoActualizado.eliminado) {
+        if (index !== -1) {
+          const copia = [...productos.value]
+          copia.splice(index, 1)
+          productos.value = copia
+        }
+        return
+      }
+      if (index === -1) {
+        productos.value = [...productos.value, productoActualizado]
+        return
+      }
       const actualizado = { ...productos.value[index], ...productoActualizado }
       const copia = [...productos.value]
       copia[index] = actualizado
