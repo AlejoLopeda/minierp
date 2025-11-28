@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <section class="productos">
     <header class="productos__header">
       <div class="productos__headings">
         <h1 class="productos__title">Productos</h1>
         <p class="productos__subtitle">
-          Gestiona tu catálogo base. Actualmente tienes <strong>{{ totalProductos }}</strong> productos.
+          Gestiona tu catÃ¡logo base. Actualmente tienes <strong>{{ totalProductos }}</strong> productos.
         </p>
       </div>
       <button type="button" class="productos__primary-button" @click="irACrear">
@@ -25,7 +25,7 @@
 
     <div v-else-if="productos.length === 0" class="productos__state">
       <span class="productos__state-text">
-        No tienes productos en el sistema. Crea el primero con el botón superior.
+        No tienes productos en el sistema. Crea el primero con el botÃ³n superior.
       </span>
     </div>
 
@@ -41,7 +41,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="producto in productos" :key="producto.id">
+          <tr v-for="producto in productosFiltrados" :key="producto.id">
             <td>{{ producto.nombre }}</td>
             <td>{{ producto.sku }}</td>
             <td class="productos__column--numeric">{{ formatCurrency(producto.precio) }}</td>
@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductos } from '@/composables/useProductos'
 
@@ -77,6 +77,7 @@ export default {
       currency: 'PEN',
       minimumFractionDigits: 2,
     })
+
 
     const irACrear = () => {
       router.push({ name: 'ProductosCrear' })
@@ -96,6 +97,8 @@ export default {
       cargarProductos()
     })
 
+    const productosFiltrados = computed(() => productos.value || [])
+
     return {
       productos,
       isLoading,
@@ -104,6 +107,7 @@ export default {
       formatCurrency,
       irACrear,
       reintentar,
+      productosFiltrados,
     }
   },
 }
@@ -262,3 +266,5 @@ export default {
   }
 }
 </style>
+
+

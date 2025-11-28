@@ -96,6 +96,12 @@ const extraerIdNumerico = (id) => {
     const rest = raw.slice(4)
     return rest || raw
   }
+  if (/^[0-9a-fA-F-]{8,}$/.test(raw)) {
+    return raw
+  }
+  if (/^\d+$/.test(raw)) {
+    return raw
+  }
   const match = raw.match(/\d+$/)
   return match ? match[0] : raw
 }

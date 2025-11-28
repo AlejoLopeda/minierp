@@ -73,9 +73,9 @@ function normalizarIdCompra(rawId) {
 function normalizarProductoId(productoId) {
   const raw = String(productoId || '').trim()
   if (!raw) return null
-  const match = raw.match(/\d+/)
-  if (match) return Number(match[0])
-  return raw
+  const sinPrefijo = raw.startsWith('prd-') ? raw.slice(4) : raw
+  if (/^\d+$/.test(sinPrefijo)) return Number(sinPrefijo)
+  return sinPrefijo
 }
 
 function normalizarFechaMovimiento(valor) {

@@ -21,6 +21,7 @@ function toCamel(obj = {}) {
     numero_documento: 'numeroDocumento',
     correo_electronico: 'correoElectronico',
     telefono: 'telefono',
+    codigo: 'codigo'
   }
   const out = {}
   Object.keys(obj || {}).forEach((k) => {
@@ -76,8 +77,13 @@ export async function obtenerTercero(id) {
   const data = await request(`${BASE_URL}/${encodeURIComponent(id)}`, { method: 'GET' })
   return toCamel(data)
 }
+function validateCodigo(payload){
+  if(payload.codigo >=40)
+  throw new Error('El codigo ingresado debe ser menor a 40')
+}
 
 export async function crearTercero(payload) {
+  validateCodigo(payload);
   const normalized = trimStrings(payload)
   const body = toCamel(normalized)
   const data = await request(BASE_URL, { method: 'POST', body })

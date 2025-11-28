@@ -10,7 +10,11 @@
         </select>
         <small v-if="errors.tipoTercero" class="cliente-form__error">{{ errors.tipoTercero }}</small>
       </label>
-
+  <label class="cliente-form__field">
+        <span class="cliente-form__label">Codigo</span>
+        <input v-model.trim="local.codigo" type="text" placeholder="codigo" required>
+        <small v-if="errors.nombreRazonSocial" class="cliente-form__error"></small>
+      </label>
       <label class="cliente-form__field">
         <span class="cliente-form__label">Nombre / Razón social</span>
         <input v-model.trim="local.nombreRazonSocial" type="text" placeholder="Ej: Juan Pérez o ACME S.A." required>

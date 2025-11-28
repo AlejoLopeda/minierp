@@ -71,6 +71,8 @@
               <span class="compra-form__label">Cantidad</span>
               <input v-model.number="linea.cantidad" type="number" min="1" step="1" class="compra-form__input" :disabled="isGuardando">
             </label>
+           
+
 
             <label class="compra-form__field compra-form__field--compact">
               <span class="compra-form__label">Precio unitario</span>
@@ -82,6 +84,7 @@
               <strong class="compra-form__resumen-value">{{ formatCurrency(calcularSubtotal(linea)) }}</strong>
             </div>
           </div>
+          
           <button type="button" class="compra-form__link-button" @click="quitarLinea(linea.id)" :disabled="isGuardando || lineas.length === 1">Quitar</button>
         </div>
       </section>
@@ -129,9 +132,11 @@ function crearLinea() {
 const obtenerFechaHoy = () => new Date().toISOString().slice(0, 10)
 function normalizarFechaInput(value) {
   if (!value) return null
-  const fecha = new Date(`${value}T00:00:00`)
-  if (Number.isNaN(fecha.getTime())) return null
-  return fecha.toISOString()
+  const [year, month, day] = String(value).split('-').map((v) => Number(v))
+  if (!year || !month || !day) return null
+  const ahora = new Date()
+  const fecha = new Date(year, month - 1, day, ahora.getHours(), ahora.getMinutes(), ahora.getSeconds(), ahora.getMilliseconds())
+  return Number.isNaN(fecha.getTime()) ? null : fecha.toISOString()
 }
 
 export default {

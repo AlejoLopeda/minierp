@@ -86,6 +86,13 @@ export default {
     const router = useRouter()
     const { compras, isLoading, errorMessage, totalCompras, totalInvertido, cargarCompras } = useCompras()
 
+        // const NOMBRE_OBJETIVO = 'queso'
+// const productosFiltrados = computed(() => {
+//   return productos.value.filter(
+//     (p) => p.nombre && p.nombre.trim().toLowerCase() === NOMBRE_OBJETIVO.toLowerCase()
+//   )
+// })
+
     const currencyFormatter = new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',

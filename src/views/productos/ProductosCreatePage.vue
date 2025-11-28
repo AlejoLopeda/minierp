@@ -69,6 +69,17 @@
             required
           >
         </label>
+<!--         <label class="producto-form__field">
+          <span class="producto-form__label">Stock minimi</span>
+          <input
+            v-model.number="form.stockminimo"
+            type="number"
+            min="4"
+            step="1"
+            placeholder="Ej: 15"
+            required
+          >
+        </label> -->
       </div>
 
       <div v-if="successMessage" class="producto-form__alert producto-form__alert--success">
@@ -110,6 +121,7 @@ export default {
       categoria: '',
       precio: null,
       stock: null,
+      
     })
 
     const esValido = computed(() => {
@@ -118,8 +130,9 @@ export default {
       const categoriaValida = typeof form.categoria === 'string' && form.categoria.trim().length > 0
       const precioValido = typeof form.precio === 'number' && !Number.isNaN(form.precio) && form.precio >= 0
       const stockValido = Number.isInteger(form.stock) && form.stock >= 0
+    
 
-      return nombreValido && skuValido && categoriaValida && precioValido && stockValido
+      return nombreValido && skuValido && categoriaValida && precioValido && stockValido 
     })
 
     const handleSubmit = async () => {
@@ -132,6 +145,8 @@ export default {
           categoria: form.categoria,
           precio: form.precio,
           stock: form.stock,
+          
+          
         })
         successMessage.value = 'Producto creado correctamente.'
         form.nombre = ''
@@ -139,6 +154,8 @@ export default {
         form.categoria = ''
         form.precio = null
         form.stock = null
+
+         router.push({ name: 'ProductosList' })
       } catch (error) {
         // el mensaje ya se gestiona en el composable
       }

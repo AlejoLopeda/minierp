@@ -51,10 +51,10 @@
             </td>
             <td>
               <div class="compras__cliente-nombre">
-                {{ venta.cliente?.nombre || 'Cliente no especificado' }}
+                {{ obtenerNombreCliente(venta.cliente) }}
               </div>
-              <small v-if="venta.cliente?.numeroDocumento" class="compras__small-text">
-                Documento: {{ venta.cliente.numeroDocumento }}
+              <small v-if="obtenerDocumentoCliente(venta.cliente)" class="compras__small-text">
+                Documento: {{ obtenerDocumentoCliente(venta.cliente) }}
               </small>
             </td>
             <td>
@@ -120,11 +120,40 @@ export default {
       return timeFormatter.format(fecha)
     }
 
+    const obtenerNombreCliente = (cliente) => {
+      if (!cliente) return 'Cliente no especificado'
+      return (
+        cliente.nombre ||
+        cliente.nombreRazonSocial ||
+        cliente.razonSocial ||
+        cliente.nombre_razon_social ||
+        cliente.nombreCliente ||
+        cliente.nombre_cliente ||
+        'Cliente no especificado'
+      )
+    }
+
+    const obtenerDocumentoCliente = (cliente) => {
+      if (!cliente) return ''
+      return (
+        cliente.numeroDocumento ||
+        cliente.numero_documento ||
+        cliente.documento ||
+        cliente.nro_documento ||
+        ''
+      )
+    }
+
     const describirProductos = (items = []) => {
       if (!Array.isArray(items) || items.length === 0) return 'Sin productos'
       return items
         .map((item) => {
-          const nombre = item?.nombre || 'Producto'
+          const nombre =
+            item?.nombre ||
+            item?.productoNombre ||
+            (typeof item?.producto === 'string' ? item.producto : item?.producto?.nombre) ||
+            item?.descripcion ||
+            'Producto'
           const cantidad = Number(item?.cantidad || 0)
           return `${nombre} x${cantidad}`
         })
@@ -161,6 +190,8 @@ export default {
       contarArticulos,
       irACrear,
       reintentar,
+      obtenerNombreCliente,
+      obtenerDocumentoCliente,
     }
   },
 }
