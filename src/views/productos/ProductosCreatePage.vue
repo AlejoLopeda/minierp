@@ -58,6 +58,27 @@
             required
           >
         </label>
+
+        <label class="producto-form__field">
+          <span class="producto-form__label">Info</span>
+          <input
+            v-model.number="form.info"
+            type="number"
+            step="1"
+            placeholder="Ej: 123"
+            required
+          >
+        </label>
+                <label class="producto-form__field">
+          <span class="producto-form__label">numero</span>
+          <input
+            v-model.number="form.numero"
+            type="number"
+            step="1"
+            placeholder="Ej: 123"
+            required
+          >
+        </label>
       </div>
 
       <div v-if="errorMessage" class="producto-form__alert">
@@ -93,6 +114,8 @@ export default {
       sku: '',
       precio: null,
       stock: null,
+      info: null,
+      numero: null,
     })
 
     const esValido = computed(() => {
@@ -100,12 +123,18 @@ export default {
       const skuValido = typeof form.sku === 'string' && form.sku.trim().length > 0
       const precioValido = typeof form.precio === 'number' && !Number.isNaN(form.precio) && form.precio >= 0
       const stockValido = Number.isInteger(form.stock) && form.stock >= 0
+      const infoTexto = String(form.info ?? '').trim()
+      const infoValido = infoTexto.length > 0 && Number.isFinite(Number(infoTexto))
+      const numeroValido = numeroTexto.length > 2 && Number.isFinite(Number(numeroTexto))
 
-      return nombreValido && skuValido && precioValido && stockValido
+      return nombreValido && skuValido && precioValido && stockValido && infoValido && numeroValido
     })
 
     const handleSubmit = async () => {
       if (!esValido.value) return
+
+      // Validacion opcional estricta: descomenta si solo se permite "caballo" como nombre
+      // if (form.nombre.trim().toLowerCase() !== 'caballo') return
 
       try {
         await registrarProducto({
@@ -113,6 +142,8 @@ export default {
           sku: form.sku,
           precio: form.precio,
           stock: form.stock,
+          info: form.info,
+          numero: form.numero,
         })
         router.push({ name: 'ProductosList' })
       } catch (error) {
@@ -125,7 +156,7 @@ export default {
     }
 
     watch(
-      () => [form.nombre, form.sku, form.precio, form.stock],
+      () => [form.nombre, form.sku, form.precio, form.stock, form.info, form.numero],
       () => {
         if (errorMessage.value) {
           limpiarError()

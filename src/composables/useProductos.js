@@ -1,32 +1,17 @@
 import { computed, ref } from 'vue'
-import { crearProducto, obtenerProductos, onProductoActualizado } from '@/services/productoService'
+import { actualizarProducto, crearProducto, eliminarProducto, obtenerProductoPorId, obtenerProductos } from '@/services/productoService'
 
 const productos = ref([])
 const isLoaded = ref(false)
 const isLoading = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
-let unsubscribeActualizado = null
-let eventosVinculados = false
 
 function setError(message) {
   errorMessage.value = message || ''
 }
 
 export function useProductos() {
-  if (!eventosVinculados) {
-    eventosVinculados = true
-    unsubscribeActualizado = onProductoActualizado((productoActualizado) => {
-      if (!productoActualizado?.id) return
-      const index = productos.value.findIndex((item) => item.id === productoActualizado.id)
-      if (index === -1) return
-      const actualizado = { ...productos.value[index], ...productoActualizado }
-      const copia = [...productos.value]
-      copia[index] = actualizado
-      productos.value = copia
-    })
-  }
-
   async function cargarProductos({ force = false } = {}) {
     if (isLoading.value) return
     if (isLoaded.value && !force) return
@@ -63,6 +48,51 @@ export function useProductos() {
     }
   }
 
+  async function actualizarProductoExistente(idProducto, payload) {
+    if (isSaving.value) return null
+
+    isSaving.value = true
+    setError('')
+
+    try {
+      const actualizado = await actualizarProducto(idProducto, payload)
+      const index = productos.value.findIndex((item) => item.id === String(idProducto))
+      if (index !== -1) {
+        const copia = [...productos.value]
+        copia[index] = actualizado
+        productos.value = copia
+      }
+      return actualizado
+    } catch (error) {
+      setError(error.message || 'No fue posible actualizar el producto')
+      throw error
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function eliminarProductoExistente(idProducto) {
+    if (!idProducto) return
+    setError('')
+    try {
+      await eliminarProducto(idProducto)
+      productos.value = productos.value.filter((item) => item.id !== String(idProducto))
+    } catch (error) {
+      setError(error.message || 'No fue posible eliminar el producto')
+      throw error
+    }
+  }
+
+  async function cargarProductoPorId(idProducto) {
+    setError('')
+    try {
+      return await obtenerProductoPorId(idProducto)
+    } catch (error) {
+      setError(error.message || 'No fue posible obtener el producto')
+      throw error
+    }
+  }
+
   function limpiarError() {
     setError('')
   }
@@ -77,13 +107,9 @@ export function useProductos() {
     totalProductos,
     cargarProductos,
     registrarProducto,
+    actualizarProductoExistente,
+    eliminarProductoExistente,
+    cargarProductoPorId,
     limpiarError,
   }
-}
-
-export function disposeProductosListener() {
-  if (typeof unsubscribeActualizado === 'function') {
-    unsubscribeActualizado()
-  }
-  eventosVinculados = false
 }

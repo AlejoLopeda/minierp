@@ -9,7 +9,7 @@
       </div>
       <div class="reportes__actions">
         <button type="button" class="btn btn--ghost" @click="presetRango('hoy')">Hoy</button>
-        <button type="button" class="btn btn--ghost" @click="presetRango('7d')">Últ. 7 días</button>
+        <button type="button" class="btn btn--ghost" @click="presetRango('7d')">Semana actual</button>
         <button type="button" class="btn btn--ghost" @click="presetRango('mes')">Mes actual</button>
         <button type="button" class="btn btn--ghost" @click="presetRango('anio')">Año actual</button>
       </div>

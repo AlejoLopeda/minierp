@@ -177,13 +177,18 @@ export default {
     }
     const hideTooltip = (key) => { if (key) tt[key].visible = false }
 
-    // Ventas vs Compras por semana (últimas 8)
+    // Ventas vs Compras por semana (lunes a domingo, últimas 8)
     const getWeekKey = (dStr) => {
+      if (!dStr) return ''
       const d = new Date(dStr)
-      const onejan = new Date(d.getFullYear(), 0, 1)
-      const millis = d - onejan
-      const week = Math.ceil(((millis / 86400000) + onejan.getDay() + 1) / 7)
-      return `${d.getFullYear()}-W${week}`
+      if (Number.isNaN(d.getTime())) return ''
+      const utcDate = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+      const dayNum = utcDate.getUTCDay() || 7 // lunes=1, domingo=7
+      utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNum)
+      const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1))
+      const week = Math.ceil((((utcDate - yearStart) / 86400000) + 1) / 7)
+      const year = utcDate.getUTCFullYear()
+      return `${year}-W${String(week).padStart(2, '0')}`
     }
     const weeks = computed(() => {
       const out = []

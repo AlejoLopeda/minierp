@@ -17,14 +17,32 @@ export function useReportes() {
   const fechaInicio = ref(new Date(addDays(new Date(), -30)).toISOString().slice(0, 10))
   const fechaFin = ref(hoyISO())
 
+  const startOfWeekMonday = (date) => {
+    const d = new Date(date)
+    const day = (d.getDay() + 6) % 7 // lunes=0, domingo=6
+    d.setDate(d.getDate() - day)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
+  const endOfWeekSunday = (date) => {
+    const start = startOfWeekMonday(date)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    end.setHours(23, 59, 59, 999)
+    return end
+  }
+
   const presetRango = (preset) => {
     const hoy = new Date()
     if (preset === 'hoy') {
       fechaInicio.value = hoy.toISOString().slice(0, 10)
       fechaFin.value = hoy.toISOString().slice(0, 10)
     } else if (preset === '7d') {
-      fechaInicio.value = addDays(hoy, -6).toISOString().slice(0, 10)
-      fechaFin.value = hoy.toISOString().slice(0, 10)
+      const start = startOfWeekMonday(hoy)
+      const end = endOfWeekSunday(hoy)
+      fechaInicio.value = start.toISOString().slice(0, 10)
+      fechaFin.value = end.toISOString().slice(0, 10)
     } else if (preset === 'mes') {
       const first = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
       fechaInicio.value = first.toISOString().slice(0, 10)
